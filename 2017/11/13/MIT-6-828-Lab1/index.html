@@ -79,18 +79,22 @@
 
 
 
-<meta name="description" content="说明这是我的博客第一系列的文章，是记录学习操作系统的过程。本系列是以MIT 6.828课程的lab为主，因为我觉得学习操作系统的时候看看书，抄着书上的代码，再配合一定的练习,对于不打算从事内核开发的我来讲打基础应该够用了。 准备工作1.这是6.828的schedule。2.这门课程的references, 这里面的书实在是太多了，我目前看的两本书是 大象书和汇编语言。3.系统的环境搭建参考1,">
+<meta name="description" content="这个lab就像看书一样，首先clone lab的代码到本地。1git clone https://pdos.csail.mit.edu/6.828/2017/jos.git lab   然后cd 进入lab下，输入make接着输入 make qemu. Part 1: PC BootstrapThe PC’s Physical Address Space  32位下物理内存的分布：低端1m的具">
 <meta name="keywords" content="os">
 <meta property="og:type" content="article">
-<meta property="og:title" content="操作系统学习">
-<meta property="og:url" content="http://yoursite.com/2017/11/09/操作系统学习/index.html">
+<meta property="og:title" content="MIT-6.828-Lab1">
+<meta property="og:url" content="http://yoursite.com/2017/11/13/MIT-6-828-Lab1/index.html">
 <meta property="og:site_name" content="11分">
-<meta property="og:description" content="说明这是我的博客第一系列的文章，是记录学习操作系统的过程。本系列是以MIT 6.828课程的lab为主，因为我觉得学习操作系统的时候看看书，抄着书上的代码，再配合一定的练习,对于不打算从事内核开发的我来讲打基础应该够用了。 准备工作1.这是6.828的schedule。2.这门课程的references, 这里面的书实在是太多了，我目前看的两本书是 大象书和汇编语言。3.系统的环境搭建参考1,">
+<meta property="og:description" content="这个lab就像看书一样，首先clone lab的代码到本地。1git clone https://pdos.csail.mit.edu/6.828/2017/jos.git lab   然后cd 进入lab下，输入make接着输入 make qemu. Part 1: PC BootstrapThe PC’s Physical Address Space  32位下物理内存的分布：低端1m的具">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2017-11-13T07:52:11.116Z">
+<meta property="og:image" content="http://yoursite.com/upload_image/1.jpg">
+<meta property="og:image" content="http://yoursite.com/upload_image/2.jpg">
+<meta property="og:image" content="http://yoursite.com/upload_image/3.jpg">
+<meta property="og:updated_time" content="2017-11-13T08:54:13.663Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="操作系统学习">
-<meta name="twitter:description" content="说明这是我的博客第一系列的文章，是记录学习操作系统的过程。本系列是以MIT 6.828课程的lab为主，因为我觉得学习操作系统的时候看看书，抄着书上的代码，再配合一定的练习,对于不打算从事内核开发的我来讲打基础应该够用了。 准备工作1.这是6.828的schedule。2.这门课程的references, 这里面的书实在是太多了，我目前看的两本书是 大象书和汇编语言。3.系统的环境搭建参考1,">
+<meta name="twitter:title" content="MIT-6.828-Lab1">
+<meta name="twitter:description" content="这个lab就像看书一样，首先clone lab的代码到本地。1git clone https://pdos.csail.mit.edu/6.828/2017/jos.git lab   然后cd 进入lab下，输入make接着输入 make qemu. Part 1: PC BootstrapThe PC’s Physical Address Space  32位下物理内存的分布：低端1m的具">
+<meta name="twitter:image" content="http://yoursite.com/upload_image/1.jpg">
 
 
 
@@ -120,13 +124,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2017/11/09/操作系统学习/"/>
+  <link rel="canonical" href="http://yoursite.com/2017/11/13/MIT-6-828-Lab1/"/>
 
 
 
 
 
-  <title>操作系统学习 | 11分</title>
+  <title>MIT-6.828-Lab1 | 11分</title>
   
 
 
@@ -253,7 +257,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/11/09/操作系统学习/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/11/13/MIT-6-828-Lab1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="黄">
@@ -270,7 +274,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">操作系统学习</h1>
+          <h1 class="post-title" itemprop="name headline">MIT-6.828-Lab1</h1>
         
 
         <div class="post-meta">
@@ -282,8 +286,8 @@
               
                 <span class="post-meta-item-text">Veröffentlicht am</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-11-09T15:48:03+08:00">
-                2017-11-09
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-11-13T16:18:45+08:00">
+                2017-11-13
               </time>
             
 
@@ -323,8 +327,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2017/11/09/操作系统学习/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/11/09/操作系统学习/" itemprop="commentCount"></span>
+                <a href="/2017/11/13/MIT-6-828-Lab1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/11/13/MIT-6-828-Lab1/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -352,9 +356,16 @@
       
 
       
-        <h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><p>这是我的博客第一系列的文章，是记录学习操作系统的过程。本系列是以MIT 6.828课程的lab为主，因为我觉得学习操作系统的时候看看书，抄着书上的代码，再配合一定的练习,对于不打算从事内核开发的我来讲打基础应该够用了。</p>
-<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>1.这是6.828的<a href="https://pdos.csail.mit.edu/6.828/2017/schedule.html" target="_blank" rel="external">schedule</a>。<br>2.这门课程的<a href="https://pdos.csail.mit.edu/6.828/2017/reference.html" target="_blank" rel="external">references</a>, 这里面的书实在是太多了，我目前看的两本书是 <a href="https://book.douban.com/subject/26745156/" target="_blank" rel="external">大象书</a>和<a href="https://www.amazon.cn/%E5%9B%BE%E4%B9%A6/dp/B00EYSPGYE" target="_blank" rel="external">汇编语言</a>。<br>3.系统的环境搭建参考<a href="https://pdos.csail.mit.edu/6.828/2017/tools.html" target="_blank" rel="external">1</a>,  <a href="http://guleilab.com/2015/12/30/FirstMeetXv6/" target="_blank" rel="external">2</a>,  <a href="http://xinqiu.me/2016/10/15/MIT-6.828-1/" target="_blank" rel="external">3</a>,主要就是linux环境和qemu模拟器的搭建，在模拟器上去操作xv6的内核。<br>4.这门课视频的YouTube上有14年的。我个人是读读lecture的notes和xv6book和xv6源码然后打算写写homework和lab。</p>
-<h2 id="第一次把学习的过程po出来主要是为了复习和巩固，水平有限，如果有人看到并有帮助的话那我非常开心。"><a href="#第一次把学习的过程po出来主要是为了复习和巩固，水平有限，如果有人看到并有帮助的话那我非常开心。" class="headerlink" title="第一次把学习的过程po出来主要是为了复习和巩固，水平有限，如果有人看到并有帮助的话那我非常开心。"></a>第一次把学习的过程po出来主要是为了复习和巩固，水平有限，如果有人看到并有帮助的话那我非常开心。</h2>
+        <p>  这个<a href="https://pdos.csail.mit.edu/6.828/2017/labs/lab1/" target="_blank" rel="external">lab</a>就像看书一样，首先clone lab的代码到本地。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">git clone https://pdos.csail.mit.edu/6.828/2017/jos.git lab</div></pre></td></tr></table></figure></p>
+<p>  然后cd 进入lab下，输入make接着输入 make qemu.</p>
+<h2 id="Part-1-PC-Bootstrap"><a href="#Part-1-PC-Bootstrap" class="headerlink" title="Part 1: PC Bootstrap"></a>Part 1: PC Bootstrap</h2><h3 id="The-PC’s-Physical-Address-Space"><a href="#The-PC’s-Physical-Address-Space" class="headerlink" title="The PC’s Physical Address Space"></a>The PC’s Physical Address Space</h3><p>  32位下物理内存的分布：<br><img src="/upload_image/1.jpg" alt=""><br>低端1m的具体情况：<br><img src="/upload_image/2.jpg" alt=""></p>
+<p>  刚开始的8086只有20条地址线，所以只能访问1m的内存，后来虽然cpu发展了，我们所说的32位处理器，以及现在普遍的32位处理器，都是在cpu的寻址能力增加了。32位下我们能访问的是2^32=4GB,而64位下我们能访问的就是2^62具体多大呵呵我忘了。反正就是很大，想想现在个人电脑我见过的内存最大也就32GB。</p>
+<h3 id="The-ROM-BIOS"><a href="#The-ROM-BIOS" class="headerlink" title="The ROM BIOS"></a>The ROM BIOS</h3><p>  我们在lab目录启动两个终端，一个make qemu-gdb，一个是make gdb.   make qemu-gdb 会在qemu模拟器执行第一条指令的时候停下，我们通过 make gdb 来看看这第一条指令到底是什么：<br><img src="/upload_image/3.jpg" alt=""><br>  第一条指令是：<br>    [f000:fff0] 0xffff0:    ljmp   $0xf000,$0xe05b</p>
+<p>不想翻译了，我们直接看：<br>1.The IBM PC starts executing at physical address 0x000ffff0, which is at the very top of the 64KB area reserved for the ROM BIOS.<br>2.The PC starts executing with CS = 0xf000 and IP = 0xfff0.<br>3.The first instruction to be executed is a jmp instruction, which jumps to the segmented address CS = 0xf000 and IP = 0xe05b.</p>
+<p>  首先 我们要了解一个概念BIOS是什么，BIOS 全称：Base Input&amp;Output System,就是基本输入输出系统。他是放在计算机的rom里面的，机器一启动就会去让BIOS启动，BIOS的工作就是去初始化各种输入输出，初始化显示器这样的基本的工作。<br>  通过低端的1M内存分布我们知道BIOS是位于顶部的0xf0000-0xfffff着64kb的，而0xffff0-0xfffff这最顶上的16B是BIOS的入口地址，我们当然不能奢求16B能做什么初始化的工作，所以当你看到jmp的时候会觉得很合理。</p>
+<p>  最后讲一下，实模式下的寻址。在这里我们访问地址是靠段基址和段内偏移地址来访问的。但是寄存器只有16位怎么去访问20位大小的地址呢。嘿嘿，我们把段基址*16，这样就让段基址左移了4位，再加上16位的段内偏移，这样我们就能访问1M内的任何地址。那我们的第一个指令举例：</p>
+<p>  16 * 0xf000 + 0xfff0   # in hex multiplication by 16 is<br>  = 0xf0000 + 0xfff0     # easy–just append a 0.<br>  = 0xffff0</p>
+<h2 id="Part-2-The-Boot-Loader"><a href="#Part-2-The-Boot-Loader" class="headerlink" title="Part 2: The Boot Loader"></a>Part 2: The Boot Loader</h2>
       
     </div>
     
@@ -384,8 +395,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/11/06/hello-world/" rel="next" title="你好">
-                <i class="fa fa-chevron-left"></i> 你好
+              <a href="/2017/11/09/操作系统学习/" rel="next" title="操作系统学习">
+                <i class="fa fa-chevron-left"></i> 操作系统学习
               </a>
             
           </div>
@@ -393,10 +404,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2017/11/13/MIT-6-828-Lab1/" rel="prev" title="MIT-6.828-Lab1">
-                MIT-6.828-Lab1 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -427,8 +434,8 @@
 
   
     <div class="comments" id="comments">
-      <div class="ds-thread" data-thread-key="2017/11/09/操作系统学习/"
-           data-title="操作系统学习" data-url="http://yoursite.com/2017/11/09/操作系统学习/">
+      <div class="ds-thread" data-thread-key="2017/11/13/MIT-6-828-Lab1/"
+           data-title="MIT-6.828-Lab1" data-url="http://yoursite.com/2017/11/13/MIT-6-828-Lab1/">
       </div>
     </div>
 
@@ -537,7 +544,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#说明"><span class="nav-number">1.</span> <span class="nav-text">说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#准备工作"><span class="nav-number">2.</span> <span class="nav-text">准备工作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第一次把学习的过程po出来主要是为了复习和巩固，水平有限，如果有人看到并有帮助的话那我非常开心。"><span class="nav-number">3.</span> <span class="nav-text">第一次把学习的过程po出来主要是为了复习和巩固，水平有限，如果有人看到并有帮助的话那我非常开心。</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-1-PC-Bootstrap"><span class="nav-number">1.</span> <span class="nav-text">Part 1: PC Bootstrap</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-PC’s-Physical-Address-Space"><span class="nav-number">1.1.</span> <span class="nav-text">The PC’s Physical Address Space</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-ROM-BIOS"><span class="nav-number">1.2.</span> <span class="nav-text">The ROM BIOS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-2-The-Boot-Loader"><span class="nav-number">2.</span> <span class="nav-text">Part 2: The Boot Loader</span></a></li></ol></div>
             
 
           </div>

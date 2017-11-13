@@ -252,6 +252,166 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/11/13/MIT-6-828-Lab1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="黄">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="11分">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/11/13/MIT-6-828-Lab1/" itemprop="url">MIT-6.828-Lab1</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-11-13T16:18:45+08:00">
+                2017-11-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">in</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/mit6-828/" itemprop="url" rel="index">
+                    <span itemprop="name">mit6.828</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/11/13/MIT-6-828-Lab1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/11/13/MIT-6-828-Lab1/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>  这个<a href="https://pdos.csail.mit.edu/6.828/2017/labs/lab1/" target="_blank" rel="external">lab</a>就像看书一样，首先clone lab的代码到本地。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">git clone https://pdos.csail.mit.edu/6.828/2017/jos.git lab</div></pre></td></tr></table></figure></p>
+<p>  然后cd 进入lab下，输入make接着输入 make qemu.</p>
+<h2 id="Part-1-PC-Bootstrap"><a href="#Part-1-PC-Bootstrap" class="headerlink" title="Part 1: PC Bootstrap"></a>Part 1: PC Bootstrap</h2><h3 id="The-PC’s-Physical-Address-Space"><a href="#The-PC’s-Physical-Address-Space" class="headerlink" title="The PC’s Physical Address Space"></a>The PC’s Physical Address Space</h3><p>  32位下物理内存的分布：<br><img src="/upload_image/1.jpg" alt=""><br>低端1m的具体情况：<br><img src="/upload_image/2.jpg" alt=""></p>
+<p>  刚开始的8086只有20条地址线，所以只能访问1m的内存，后来虽然cpu发展了，我们所说的32位处理器，以及现在普遍的32位处理器，都是在cpu的寻址能力增加了。32位下我们能访问的是2^32=4GB,而64位下我们能访问的就是2^62具体多大呵呵我忘了。反正就是很大，想想现在个人电脑我见过的内存最大也就32GB。</p>
+<h3 id="The-ROM-BIOS"><a href="#The-ROM-BIOS" class="headerlink" title="The ROM BIOS"></a>The ROM BIOS</h3><p>  我们在lab目录启动两个终端，一个make qemu-gdb，一个是make gdb.   make qemu-gdb 会在qemu模拟器执行第一条指令的时候停下，我们通过 make gdb 来看看这第一条指令到底是什么：<br><img src="/upload_image/3.jpg" alt=""><br>  第一条指令是：<br>    [f000:fff0] 0xffff0:    ljmp   $0xf000,$0xe05b</p>
+<p>不想翻译了，我们直接看：<br>1.The IBM PC starts executing at physical address 0x000ffff0, which is at the very top of the 64KB area reserved for the ROM BIOS.<br>2.The PC starts executing with CS = 0xf000 and IP = 0xfff0.<br>3.The first instruction to be executed is a jmp instruction, which jumps to the segmented address CS = 0xf000 and IP = 0xe05b.</p>
+<p>  首先 我们要了解一个概念BIOS是什么，BIOS 全称：Base Input&amp;Output System,就是基本输入输出系统。他是放在计算机的rom里面的，机器一启动就会去让BIOS启动，BIOS的工作就是去初始化各种输入输出，初始化显示器这样的基本的工作。<br>  通过低端的1M内存分布我们知道BIOS是位于顶部的0xf0000-0xfffff着64kb的，而0xffff0-0xfffff这最顶上的16B是BIOS的入口地址，我们当然不能奢求16B能做什么初始化的工作，所以当你看到jmp的时候会觉得很合理。</p>
+<p>  最后讲一下，实模式下的寻址。在这里我们访问地址是靠段基址和段内偏移地址来访问的。但是寄存器只有16位怎么去访问20位大小的地址呢。嘿嘿，我们把段基址*16，这样就让段基址左移了4位，再加上16位的段内偏移，这样我们就能访问1M内的任何地址。那我们的第一个指令举例：</p>
+<p>  16 * 0xf000 + 0xfff0   # in hex multiplication by 16 is<br>  = 0xf0000 + 0xfff0     # easy–just append a 0.<br>  = 0xffff0</p>
+<h2 id="Part-2-The-Boot-Loader"><a href="#Part-2-The-Boot-Loader" class="headerlink" title="Part 2: The Boot Loader"></a>Part 2: The Boot Loader</h2>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/11/09/操作系统学习/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -568,7 +728,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">3</span>
                   <span class="site-state-item-name">Artikel</span>
                 </a>
               </div>
