@@ -91,7 +91,8 @@
 <meta property="og:image" content="http://yoursite.com/upload_image/2.jpg">
 <meta property="og:image" content="http://yoursite.com/upload_image/3.jpg">
 <meta property="og:image" content="http://yoursite.com/upload_image/4.png">
-<meta property="og:updated_time" content="2017-11-19T06:48:42.781Z">
+<meta property="og:image" content="http://yoursite.com/upload_image/5.png">
+<meta property="og:updated_time" content="2017-11-19T07:38:13.931Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="MIT-6.828-Lab1">
 <meta name="twitter:description" content="这个lab就像看书一样。   首先clone lab的代码到本地： 1git clone https://pdos.csail.mit.edu/6.828/2017/jos.git lab   然后cd 进入lab下，输入make接着输入 make qemu。 Part 1: PC BootstrapThe PC’s Physical Address Space  32位下物理内存的分布：低端">
@@ -385,7 +386,7 @@
 <li>At what point does the processor start executing 32-bit code? What exactly causes the switch from 16- to 32-bit mode?</li>
 </ol>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">75   # Jump to next instruction, but in 32-bit code segment.</div><div class="line">76   # Switches processor into 32-bit mode.</div><div class="line">77   ljmp    $PROT_MODE_CSEG, $protcseg</div><div class="line">78     7c2d:       ea                      .byte 0xea</div><div class="line">79     7c2e:       32 7c 08 00             xor    0x0(%eax,%ecx,1),%bh</div><div class="line">80</div><div class="line">81 00007c32 &lt;protcseg&gt;:</div><div class="line">82</div><div class="line">83   .code32                     # Assemble for 32-bit mode</div><div class="line">84 protcseg:</div></pre></td></tr></table></figure>
-<p>​    在boot.S中我们可以清楚地看到，在这里调到了32位的保护模式，现在我们就用gdb看一下这个ljmp指令是具体哪个位置上执行的。我们知道这个boot.S是先被加载0x7c00，这个地方，为了熟悉gdb，我们多用几个命令:</p>
+<p>​    在boot.asm中我们可以清楚地看到，在这里调到了32位的保护模式，现在我们就用gdb看一下这个ljmp指令是具体哪个位置上执行的。我们知道这个boot.S是先被加载0x7c00，这个地方，为了熟悉gdb，我们多用几个命令:</p>
 <ul>
 <li><p>b *addr  在某个地址打断点，运行到这里会停下</p>
 </li>
@@ -394,13 +395,24 @@
 <li><p>x/Ni addr  打印从addr开始的n个汇编代码。</p>
 <p>执行情况如下：</p>
 <p><img src="/upload_image/4.png" alt=""></p>
-<p>​</p>
+<p>我们要找的就是ljmp这个指令，所以可以看出他的位置是0x7c2d。</p>
 </li>
 </ul>
 <ol>
-<li>What is the last instruction of the boot loader executed, and what is the first instruction of the kernel it just loaded?</li>
-<li>Where is the first instruction of the kernel?</li>
-<li>How does the boot loader decide how many sectors it must read in order to fetch the entire kernel from disk? Where does it find this information?</li>
+<li><p>What is the last instruction of the boot loader executed, and what is the first instruction of the kernel it just loaded?</p>
+<p>boot.S 和main.c构成了boot loader，那么最后执行的肯定是在main.c的主函数里面：</p>
+<p><img src="/upload_image/5.png" alt=""></p>
+<p>我们可以看书这个代码就是读取elf文件的入口处，那么kernel 被加载的第一句指令肯定是代码段开始的第一句，在obj/kern/下面也有kernel.asm文件，这是反汇编好的也可以直接拿来看。我们也可以通过nm或者objdump来看，方法很多。</p>
+<p>最后我们之后e_entry 是0x0010000c，这个地址处的指令是： movw $0x1234, 0x472</p>
+<p>​</p>
+</li>
+<li><p>Where is the first instruction of the kernel?</p>
+<p>​    movw $0x1234, 0x472</p>
+</li>
+<li><p>How does the boot loader decide how many sectors it must read in order to fetch the entire kernel from disk? Where does it find this information?</p>
+<p>这个肯定是根据elf文件的文件头里面的信息来决定的。main.c里面吧每个program header对应的信息全部读进内存地址。</p>
+<h3 id="LOADING-the-Kernel"><a href="#LOADING-the-Kernel" class="headerlink" title="LOADING the Kernel"></a>LOADING the Kernel</h3><p>​</p>
+</li>
 </ol>
 
       
@@ -581,7 +593,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-1-PC-Bootstrap"><span class="nav-number">1.</span> <span class="nav-text">Part 1: PC Bootstrap</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-PC’s-Physical-Address-Space"><span class="nav-number">1.1.</span> <span class="nav-text">The PC’s Physical Address Space</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-ROM-BIOS"><span class="nav-number">1.2.</span> <span class="nav-text">The ROM BIOS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-2-The-Boot-Loader"><span class="nav-number">2.</span> <span class="nav-text">Part 2: The Boot Loader</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-1-PC-Bootstrap"><span class="nav-number">1.</span> <span class="nav-text">Part 1: PC Bootstrap</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-PC’s-Physical-Address-Space"><span class="nav-number">1.1.</span> <span class="nav-text">The PC’s Physical Address Space</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-ROM-BIOS"><span class="nav-number">1.2.</span> <span class="nav-text">The ROM BIOS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-2-The-Boot-Loader"><span class="nav-number">2.</span> <span class="nav-text">Part 2: The Boot Loader</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LOADING-the-Kernel"><span class="nav-number">2.1.</span> <span class="nav-text">LOADING the Kernel</span></a></li></ol></li></ol></div>
             
 
           </div>
