@@ -185,7 +185,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
             
-            Home
+            Startseite
           </a>
         </li>
       
@@ -205,7 +205,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
             
-            Categories
+            Kategorien
           </a>
         </li>
       
@@ -215,7 +215,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
             
-            Archives
+            Archiv
           </a>
         </li>
       
@@ -281,7 +281,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Posted on</span>
+                <span class="post-meta-item-text">Veröffentlicht am</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-11-13T16:18:45+08:00">
                 2017-11-13
@@ -302,7 +302,7 @@
                 <i class="fa fa-folder-o"></i>
               </span>
               
-                <span class="post-meta-item-text">In</span>
+                <span class="post-meta-item-text">in</span>
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
@@ -426,6 +426,35 @@
 <p><img src="/upload_image/7.png" alt=""></p>
 <p>所以c转换完之后实际上值得区域是[b4,b8]这样一个4字节大小的地方，此时c被赋值，实际上会改变a[1],a[2]两个数值，根据小端排序之后的值便是程序的输出。</p>
 <p>part2的下面部分都是介绍elf文件格式。</p>
+<p>我们的编译器吧各种.c文件编译成.o的重定位文件，这个重定位文件的名字还是很形象的。这个文件里面的各个符号都需要重新定位，而.o文件里面呢是二进制的机器码。当重定位文件经过链接之后就是二进制可执行文件。这个就是我们说的elf格式。</p>
+<p>我们知道程序里面有各种section，也就是节。而elf里面会把各种属性相同的section合并在一起称为segment也就是段。所以elf文件他的格式就是，开始是一个elf header，这个header里面有各种信息。然后就是program header，这个header就是segment 的信息。向我们感兴趣的一般有：</p>
+<ol>
+<li>.text这个就是代码段，整个程序的指令都会放在这个段里面</li>
+<li>.data 程序已经初始化之后的数据段</li>
+<li>.rodata这个我还是第一次知道，这个是read-only，只读数据段</li>
+</ol>
+<p>链接器在计算内存布局的时候会给为初始化的全局变量保存空间，这个段是.bss段,没有在elf的.bss字段存储内容只存了地址和大小。</p>
+<p>我们要知道，当我们把kernel加载进内存之后，loader还要分析elf结构将其解析到新的位置，也就是，内核在内存中有两份。一份是直接的拷贝还有一份是各个segment复制到内存后的程序体。</p>
+<p>我们使用以下命令来查看elf头部信息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">objdump -h obj/kern/kernel</div></pre></td></tr></table></figure>
+<p>得到如图所示信息：</p>
+<p><img src="/upload_image/8.png" alt=""></p>
+<p>我们需要关注的是.text短的VMA（link address）和LMA（load address）。LMA是 这个代码段load进内存的地址。VMA是这个代码段执行时候的地址。</p>
+<p>通常情况下，这个LMA和VMA应该是一样的。我们可以查看boot.out的elf header信心。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">objdump -h obj/boot/boot.out</div></pre></td></tr></table></figure>
+<p>得到的信息：</p>
+<p><img src="/upload_image/9.png" alt=""></p>
+<p>你会发现这确实一样，但是为什么上面的kernel的LMA和VMA不一样呢？以下是老夫脸滚键盘，boot.out还是处在实模式下的代码，所以他的加载地址和执行地址是一样的可以理解。但是kernel是内核，原因是此时是保护模式下，所以VMA地址是虚拟地址所以很高，而加载地址并不高，那么VMA为什么要这么高呢，因为kernel是内核，内核是在高地址，所以kernel的VMA较高。</p>
+<p>我们的boot是被加载到0x7c00这个地方，我们把 <code>-Ttext 0x7C00</code>这个参数放在了，boot/Makefrag这里面。</p>
+<p>Exercise5 要我们修改这个参数看看会出现什么错误情况。那我就把0x7c00改成0x500看看。</p>
+<p><img src="/upload_image/10.png" alt=""></p>
+<p>虽然我在0x500处打的断点，但是出错了，因为我是把程序加载到0x500，这个出错的一眼就能看出来是跳转到32位的时候出错了。</p>
+<p>除了节信息之外，还有一个e_entry很重要，这个信息告诉我们在代码中程序从那里开始执行。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">objdump -f obj/kern/kernel</div></pre></td></tr></table></figure>
+<p>然后我们就看见start address 是0x0010000c。</p>
+<p>其实到这里我觉得是有点复杂的：</p>
+<p><img src="/upload_image/11.png" alt=""></p>
+<p>我们可以见得是，程序的起始地址是0x001000c，我们的内核是被加载到0x00100000， 内核的VMD（虚拟内存地址，也就是运行时候的地址，这个时候是开启了分页模式，实际上对应的物理地址可能就是LMA）是0xf0100000.首先，在运行时我们要把代码从0x00100000的地方复制到0xf0100000.其次程序的起始地址是0x0010000c也很好理解，不是从第一句代码开始执行的。但是既然程序运行的时候要复制到0xf0100000这里那么为什么<strong>起始地址不是0xf010000c呢</strong>？</p>
 
           
         
@@ -503,7 +532,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Posted on</span>
+                <span class="post-meta-item-text">Veröffentlicht am</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-11-09T15:48:03+08:00">
                 2017-11-09
@@ -524,7 +553,7 @@
                 <i class="fa fa-folder-o"></i>
               </span>
               
-                <span class="post-meta-item-text">In</span>
+                <span class="post-meta-item-text">in</span>
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
@@ -656,7 +685,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Posted on</span>
+                <span class="post-meta-item-text">Veröffentlicht am</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-11-06T17:51:51+08:00">
                 2017-11-06
@@ -791,7 +820,7 @@
                 <a href="/archives/">
               
                   <span class="site-state-item-count">3</span>
-                  <span class="site-state-item-name">posts</span>
+                  <span class="site-state-item-name">Artikel</span>
                 </a>
               </div>
             
@@ -802,7 +831,7 @@
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
                   <span class="site-state-item-count">1</span>
-                  <span class="site-state-item-name">categories</span>
+                  <span class="site-state-item-name">Kategorien</span>
                 </a>
               </div>
             
@@ -813,7 +842,7 @@
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
                   <span class="site-state-item-count">1</span>
-                  <span class="site-state-item-name">tags</span>
+                  <span class="site-state-item-name">Tags</span>
                 </a>
               </div>
             
@@ -861,7 +890,7 @@
 </div>
 
 
-  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+  <div class="powered-by">Erstellt mit  <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
 
 
 
