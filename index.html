@@ -185,7 +185,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
             
-            Startseite
+            Home
           </a>
         </li>
       
@@ -205,7 +205,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
             
-            Kategorien
+            Categories
           </a>
         </li>
       
@@ -215,7 +215,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
             
-            Archiv
+            Archives
           </a>
         </li>
       
@@ -281,7 +281,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Veröffentlicht am</span>
+                <span class="post-meta-item-text">Posted on</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-11-13T16:18:45+08:00">
                 2017-11-13
@@ -302,7 +302,7 @@
                 <i class="fa fa-folder-o"></i>
               </span>
               
-                <span class="post-meta-item-text">in</span>
+                <span class="post-meta-item-text">In</span>
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
@@ -355,16 +355,52 @@
       
         
           
-            <p>  这个<a href="https://pdos.csail.mit.edu/6.828/2017/labs/lab1/" target="_blank" rel="external">lab</a>就像看书一样。<br>  首先clone lab的代码到本地。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">git clone https://pdos.csail.mit.edu/6.828/2017/jos.git lab</div></pre></td></tr></table></figure></p>
-<p>  然后cd 进入lab下，输入make接着输入 make qemu.</p>
-<h2 id="Part-1-PC-Bootstrap"><a href="#Part-1-PC-Bootstrap" class="headerlink" title="Part 1: PC Bootstrap"></a>Part 1: PC Bootstrap</h2><h3 id="The-PC’s-Physical-Address-Space"><a href="#The-PC’s-Physical-Address-Space" class="headerlink" title="The PC’s Physical Address Space"></a>The PC’s Physical Address Space</h3><p>  32位下物理内存的分布：<br><img src="/upload_image/1.jpg" alt=""><br>低端1m的具体情况：<br><img src="/upload_image/2.jpg" alt=""></p>
-<p>  刚开始的8086只有20条地址线，所以只能访问1m的内存，后来虽然cpu发展了，我们所说的32位处理器，以及现在普遍的32位处理器，都是在cpu的寻址能力增加了。32位下我们能访问的是2^32=4GB,而64位下我们能访问的就是2^62具体多大呵呵我忘了。反正就是很大，想想现在个人电脑我见过的内存最大也就32GB。</p>
-<h3 id="The-ROM-BIOS"><a href="#The-ROM-BIOS" class="headerlink" title="The ROM BIOS"></a>The ROM BIOS</h3><p>  我们在lab目录启动两个终端，一个make qemu-gdb，一个是make gdb.   make qemu-gdb 会在qemu模拟器执行第一条指令的时候停下，我们通过 make gdb 来看看这第一条指令到底是什么：<br><img src="/upload_image/3.jpg" alt=""><br>  第一条指令是：<br>    [f000:fff0] 0xffff0:    ljmp   $0xf000,$0xe05b</p>
-<p>不想翻译了，我们直接看：<br>1.The IBM PC starts executing at physical address 0x000ffff0, which is at the very top of the 64KB area reserved for the ROM BIOS.<br>2.The PC starts executing with CS = 0xf000 and IP = 0xfff0.<br>3.The first instruction to be executed is a jmp instruction, which jumps to the segmented address CS = 0xf000 and IP = 0xe05b.</p>
-<p>  首先 我们要了解一个概念BIOS是什么，BIOS 全称：Base Input&amp;Output System,就是基本输入输出系统。他是放在计算机的rom里面的，机器一启动就会去让BIOS启动，BIOS的工作就是去初始化各种输入输出，初始化显示器这样的基本的工作。<br>  通过低端的1M内存分布我们知道BIOS是位于顶部的0xf0000-0xfffff着64kb的，而0xffff0-0xfffff这最顶上的16B是BIOS的入口地址，我们当然不能奢求16B能做什么初始化的工作，所以当你看到jmp的时候会觉得很合理。</p>
-<p>  最后讲一下，实模式下的寻址。在这里我们访问地址是靠段基址和段内偏移地址来访问的。但是寄存器只有16位怎么去访问20位大小的地址呢。嘿嘿，我们把段基址*16，这样就让段基址左移了4位，再加上16位的段内偏移，这样我们就能访问1M内的任何地址。那我们的第一个指令举例：</p>
-<p>  16 * 0xf000 + 0xfff0   # in hex multiplication by 16 is<br>  = 0xf0000 + 0xfff0     # easy–just append a 0.<br>  = 0xffff0</p>
-<h2 id="Part-2-The-Boot-Loader"><a href="#Part-2-The-Boot-Loader" class="headerlink" title="Part 2: The Boot Loader"></a>Part 2: The Boot Loader</h2>
+            <p>  这个<a href="https://pdos.csail.mit.edu/6.828/2017/labs/lab1/" target="_blank" rel="external">lab</a>就像看书一样。</p>
+<p>  首先clone lab的代码到本地：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">git clone https://pdos.csail.mit.edu/6.828/2017/jos.git lab</div></pre></td></tr></table></figure>
+<p>  然后cd 进入lab下，输入make接着输入 make qemu。</p>
+<h2 id="Part-1-PC-Bootstrap"><a href="#Part-1-PC-Bootstrap" class="headerlink" title="Part 1: PC Bootstrap"></a>Part 1: PC Bootstrap</h2><h3 id="The-PC’s-Physical-Address-Space"><a href="#The-PC’s-Physical-Address-Space" class="headerlink" title="The PC’s Physical Address Space"></a>The PC’s Physical Address Space</h3><p>  32位下物理内存的分布：<br><img src="/upload_image/1.jpg" alt=""><br>低端1MB的具体情况：<br><img src="/upload_image/2.jpg" alt=""></p>
+<pre><code>刚开始的8086只有20条地址线，所以只能访问1m的内存，后来虽然cpu发展了，我们所说的32位处理器，以及现在普遍的32位处理器，都是在cpu的寻址能力增加了。32位下我们能访问的是2^32=4GB,而64位下我们能访问的就是2^62具体多大呵呵我忘了。反正就是很大，想想现在个人电脑我见过的内存最大也就32GB。
+</code></pre><h3 id="The-ROM-BIOS"><a href="#The-ROM-BIOS" class="headerlink" title="The ROM BIOS"></a>The ROM BIOS</h3><p>​    我们在lab目录启动两个终端，一个make qemu-gdb，一个是make gdb.   make qemu-gdb 会在qemu模拟器执行第一条指令的时候停下，我们通过 make gdb 来看看这第一条指令到底是什么：<br><img src="/upload_image/3.jpg" alt=""><br>第一条指令是：<br>    [f000:fff0] 0xffff0:    ljmp   $0xf000,$0xe05b<br>不想翻译了，我们直接看：</p>
+<ol>
+<li>The IBM PC starts executing at physical address 0x000ffff0, which is at the very top of the 64KB area reserved for the ROM BIOS.</li>
+<li>The PC starts executing with CS = 0xf000 and IP = 0xfff0.</li>
+<li>The first instruction to be executed is a jmp instruction, which jumps to the segmented address CS = 0xf000 and IP = 0xe05b。</li>
+</ol>
+<p>​    首先 我们要了解一个概念BIOS是什么，BIOS 全称：Base Input&amp;Output System,就是基本输入输出系统。他是放在计算机的rom里面的，机器一启动就会去让BIOS启动，BIOS的工作就是去初始化各种输入输出，初始化显示器这样的基本的工作。</p>
+<pre><code>通过低端的1M内存分布我们知道BIOS是位于顶部的0xf0000-0xfffff着64kb的，而0xffff0-0xfffff这最顶上的16B是BIOS的入口地址，我们当然不能奢求16B能做什么初始化的工作，所以当你看到jmp的时候会觉得很合理。
+
+最后讲一下，实模式下的寻址。在这里我们访问地址是靠段基址和段内偏移地址来访问的。但是寄存器只有16位怎么去访问20位大小的地址呢。嘿嘿，我们把段基址*16，这样就让段基址左移了4位，再加上16位的段内偏移，这样我们就能访问1M内的任何地址。那我们的第一个指令举例：
+</code></pre><p>  16 * 0xf000 + 0xfff0   # in hex multiplication by 16 is<br>  = 0xf0000 + 0xfff0     # easy–just append a 0.<br>  = 0xffff0</p>
+<h2 id="Part-2-The-Boot-Loader"><a href="#Part-2-The-Boot-Loader" class="headerlink" title="Part 2: The Boot Loader"></a>Part 2: The Boot Loader</h2><p>​    这一部分讲的是启动部分，BIOS在完成基本的初始化之后会把引导程序从磁盘的第一个扇区复制到0x7c00-0x7dff这512字节上。</p>
+<p>这个boot.S的主要作用是：</p>
+<ul>
+<li>实现实模式到保护模式的转换。</li>
+<li>从磁盘上接着去读取内核代码。</li>
+</ul>
+<p>我们需要做的是利用gdb查看boot.S and main.c，然后回答以下问题：</p>
+<ol>
+<li>At what point does the processor start executing 32-bit code? What exactly causes the switch from 16- to 32-bit mode?</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">75   # Jump to next instruction, but in 32-bit code segment.</div><div class="line">76   # Switches processor into 32-bit mode.</div><div class="line">77   ljmp    $PROT_MODE_CSEG, $protcseg</div><div class="line">78     7c2d:       ea                      .byte 0xea</div><div class="line">79     7c2e:       32 7c 08 00             xor    0x0(%eax,%ecx,1),%bh</div><div class="line">80</div><div class="line">81 00007c32 &lt;protcseg&gt;:</div><div class="line">82</div><div class="line">83   .code32                     # Assemble for 32-bit mode</div><div class="line">84 protcseg:</div></pre></td></tr></table></figure>
+<p>​    在boot.S中我们可以清楚地看到，在这里调到了32位的保护模式，现在我们就用gdb看一下这个ljmp指令是具体哪个位置上执行的。我们知道这个boot.S是先被加载0x7c00，这个地方，为了熟悉gdb，我们多用几个命令:</p>
+<ul>
+<li><p>b *addr  在某个地址打断点，运行到这里会停下</p>
+</li>
+<li><p>si 逐步执行</p>
+</li>
+<li><p>x/Ni addr  打印从addr开始的n个汇编代码。</p>
+<p>执行情况如下：</p>
+<p><img src="/upload_image/4.png" alt=""></p>
+<p>​</p>
+</li>
+</ul>
+<ol>
+<li>What is the last instruction of the boot loader executed, and what is the first instruction of the kernel it just loaded?</li>
+<li>Where is the first instruction of the kernel?</li>
+<li>How does the boot loader decide how many sectors it must read in order to fetch the entire kernel from disk? Where does it find this information?</li>
+</ol>
+
           
         
       
@@ -441,7 +477,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Veröffentlicht am</span>
+                <span class="post-meta-item-text">Posted on</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-11-09T15:48:03+08:00">
                 2017-11-09
@@ -462,7 +498,7 @@
                 <i class="fa fa-folder-o"></i>
               </span>
               
-                <span class="post-meta-item-text">in</span>
+                <span class="post-meta-item-text">In</span>
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
@@ -594,7 +630,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Veröffentlicht am</span>
+                <span class="post-meta-item-text">Posted on</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-11-06T17:51:51+08:00">
                 2017-11-06
@@ -729,7 +765,7 @@
                 <a href="/archives/">
               
                   <span class="site-state-item-count">3</span>
-                  <span class="site-state-item-name">Artikel</span>
+                  <span class="site-state-item-name">posts</span>
                 </a>
               </div>
             
@@ -740,7 +776,7 @@
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
                   <span class="site-state-item-count">1</span>
-                  <span class="site-state-item-name">Kategorien</span>
+                  <span class="site-state-item-name">categories</span>
                 </a>
               </div>
             
@@ -751,7 +787,7 @@
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
                   <span class="site-state-item-count">1</span>
-                  <span class="site-state-item-name">Tags</span>
+                  <span class="site-state-item-name">tags</span>
                 </a>
               </div>
             
@@ -799,7 +835,7 @@
 </div>
 
 
-  <div class="powered-by">Erstellt mit  <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
 
 
 
