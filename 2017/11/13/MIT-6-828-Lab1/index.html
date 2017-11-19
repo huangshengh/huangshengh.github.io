@@ -92,7 +92,9 @@
 <meta property="og:image" content="http://yoursite.com/upload_image/3.jpg">
 <meta property="og:image" content="http://yoursite.com/upload_image/4.png">
 <meta property="og:image" content="http://yoursite.com/upload_image/5.png">
-<meta property="og:updated_time" content="2017-11-19T07:45:20.142Z">
+<meta property="og:image" content="http://yoursite.com/upload_image/6.png">
+<meta property="og:image" content="http://yoursite.com/upload_image/7.png">
+<meta property="og:updated_time" content="2017-11-19T09:03:46.130Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="MIT-6.828-Lab1">
 <meta name="twitter:description" content="这个lab就像看书一样。   首先clone lab的代码到本地： 1git clone https://pdos.csail.mit.edu/6.828/2017/jos.git lab   然后cd 进入lab下，输入make接着输入 make qemu。 Part 1: PC BootstrapThe PC’s Physical Address Space  32位下物理内存的分布：低端">
@@ -192,7 +194,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
             
-            Home
+            Startseite
           </a>
         </li>
       
@@ -212,7 +214,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
             
-            Categories
+            Kategorien
           </a>
         </li>
       
@@ -222,7 +224,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
             
-            Archives
+            Archiv
           </a>
         </li>
       
@@ -286,7 +288,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Posted on</span>
+                <span class="post-meta-item-text">Veröffentlicht am</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-11-13T16:18:45+08:00">
                 2017-11-13
@@ -307,7 +309,7 @@
                 <i class="fa fa-folder-o"></i>
               </span>
               
-                <span class="post-meta-item-text">In</span>
+                <span class="post-meta-item-text">in</span>
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
@@ -366,11 +368,14 @@
 <pre><code>刚开始的8086只有20条地址线，所以只能访问1m的内存，后来虽然cpu发展了，我们所说的32位处理器，以及现在普遍的32位处理器，都是在cpu的寻址能力增加了。32位下我们能访问的是2^32=4GB,而64位下我们能访问的就是2^62具体多大呵呵我忘了。反正就是很大，想想现在个人电脑我见过的内存最大也就32GB。
 </code></pre><h3 id="The-ROM-BIOS"><a href="#The-ROM-BIOS" class="headerlink" title="The ROM BIOS"></a>The ROM BIOS</h3><p>​    我们在lab目录启动两个终端，一个make qemu-gdb，一个是make gdb.   make qemu-gdb 会在qemu模拟器执行第一条指令的时候停下，我们通过 make gdb 来看看这第一条指令到底是什么：<br><img src="/upload_image/3.jpg" alt=""><br>第一条指令是：<br>    [f000:fff0] 0xffff0:    ljmp   $0xf000,$0xe05b<br>不想翻译了，我们直接看：</p>
 <ol>
-<li>The IBM PC starts executing at physical address 0x000ffff0, which is at the very top of the 64KB area reserved for the ROM BIOS.</li>
-<li>The PC starts executing with CS = 0xf000 and IP = 0xfff0.</li>
-<li>The first instruction to be executed is a jmp instruction, which jumps to the segmented address CS = 0xf000 and IP = 0xe05b。</li>
-</ol>
+<li><p>The IBM PC starts executing at physical address 0x000ffff0, which is at the very top of the 64KB area reserved for the ROM BIOS.</p>
+</li>
+<li><p>The PC starts executing with CS = 0xf000 and IP = 0xfff0.</p>
+</li>
+<li><p>The first instruction to be executed is a jmp instruction, which jumps to the segmented address CS = 0xf000 and IP = 0xe05b。</p>
 <p>​    首先 我们要了解一个概念BIOS是什么，BIOS 全称：Base Input&amp;Output System,就是基本输入输出系统。他是放在计算机的rom里面的，机器一启动就会去让BIOS启动，BIOS的工作就是去初始化各种输入输出，初始化显示器这样的基本的工作。</p>
+</li>
+</ol>
 <p>​    通过低端的1M内存分布我们知道BIOS是位于顶部的0xf0000-0xfffff着64kb的，而0xffff0-0xfffff这最顶上的16B是BIOS的入口地址，我们当然不能奢求16B能做什么初始化的工作，所以当你看到jmp的时候会觉得很合理。</p>
 <pre><code>最后讲一下，实模式下的寻址。在这里我们访问地址是靠段基址和段内偏移地址来访问的。但是寄存器只有16位怎么去访问20位大小的地址呢。嘿嘿，我们把段基址*16，这样就让段基址左移了4位，再加上16位的段内偏移，这样我们就能访问1M内的任何地址。那我们的第一个指令举例：
 </code></pre><p>  16 * 0xf000 + 0xfff0   # in hex multiplication by 16 is<br>  = 0xf0000 + 0xfff0     # easy–just append a 0.<br>  = 0xffff0</p>
@@ -409,9 +414,22 @@
 </li>
 <li><p>How does the boot loader decide how many sectors it must read in order to fetch the entire kernel from disk? Where does it find this information?</p>
 <p>这个肯定是根据elf文件的文件头里面的信息来决定的。main.c里面吧每个program header对应的信息全部读进内存地址。</p>
-<h3 id="LOADING-the-Kernel"><a href="#LOADING-the-Kernel" class="headerlink" title="LOADING the Kernel"></a>LOADING the Kernel</h3><p>​</p>
+<p>​</p>
 </li>
 </ol>
+<h3 id="Loading-the-kernel"><a href="#Loading-the-kernel" class="headerlink" title="Loading the kernel"></a>Loading the kernel</h3><p>这个exercise推荐读<a href="http://www.amazon.com/C-Programming-Language-2nd/dp/0131103628/sr=8-1/qid=1157812738/ref=pd_bbs_1/104-1502762-1803102?ie=UTF8&amp;s=books" target="_blank" rel="external">K&amp;R</a>的<em>The C Programming Language</em>，然后理解<a href="https://pdos.csail.mit.edu/6.828/2017/labs/lab1/pointers.c" target="_blank" rel="external">pointers.c</a>代码。主要是c里面指着和地址这一部分。这个代码输出6行，我就捡着我觉得有意思的一行结果来说说。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span></div><div class="line">f(<span class="keyword">void</span>)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">int</span> a[<span class="number">4</span>];</div><div class="line">    <span class="keyword">int</span> *b = <span class="built_in">malloc</span>(<span class="number">16</span>);</div><div class="line">    <span class="keyword">int</span> *c;</div><div class="line">    <span class="keyword">int</span> i;</div><div class="line"></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"1: a = %p, b = %p, c = %p\n"</span>, a, b, c);</div><div class="line"></div><div class="line">    c = a;</div><div class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; <span class="number">4</span>; i++)</div><div class="line">	a[i] = <span class="number">100</span> + i;</div><div class="line">    c[<span class="number">0</span>] = <span class="number">200</span>;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"2: a[0] = %d, a[1] = %d, a[2] = %d, a[3] = %d\n"</span>,</div><div class="line">	   a[<span class="number">0</span>], a[<span class="number">1</span>], a[<span class="number">2</span>], a[<span class="number">3</span>]);</div><div class="line"></div><div class="line">    c[<span class="number">1</span>] = <span class="number">300</span>;</div><div class="line">    *(c + <span class="number">2</span>) = <span class="number">301</span>;</div><div class="line">    <span class="number">3</span>[c] = <span class="number">302</span>;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"3: a[0] = %d, a[1] = %d, a[2] = %d, a[3] = %d\n"</span>,</div><div class="line">	   a[<span class="number">0</span>], a[<span class="number">1</span>], a[<span class="number">2</span>], a[<span class="number">3</span>]);</div><div class="line"></div><div class="line">    c = c + <span class="number">1</span>;</div><div class="line">    *c = <span class="number">400</span>;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"4: a[0] = %d, a[1] = %d, a[2] = %d, a[3] = %d\n"</span>,</div><div class="line">	   a[<span class="number">0</span>], a[<span class="number">1</span>], a[<span class="number">2</span>], a[<span class="number">3</span>]);</div><div class="line"></div><div class="line">    c = (<span class="keyword">int</span> *) ((<span class="keyword">char</span> *) c + <span class="number">1</span>);</div><div class="line">    *c = <span class="number">500</span>;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"5: a[0] = %d, a[1] = %d, a[2] = %d, a[3] = %d\n"</span>,</div><div class="line">	   a[<span class="number">0</span>], a[<span class="number">1</span>], a[<span class="number">2</span>], a[<span class="number">3</span>]);</div><div class="line"></div><div class="line">    b = (<span class="keyword">int</span> *) a + <span class="number">1</span>;</div><div class="line">    c = (<span class="keyword">int</span> *) ((<span class="keyword">char</span> *) a + <span class="number">1</span>);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"6: a = %p, b = %p, c = %p\n"</span>, a, b, c);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>我的运行结果是这样的：</p>
+<p><img src="/upload_image/6.png" alt=""></p>
+<p>a表示数组起始地址，数组在内存中是连续的.</p>
+<p> a = 0x7ffee4cebab0</p>
+<p>看上面的代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">c = a;</div></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">c = c + <span class="number">1</span>;</div></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">c = (<span class="keyword">int</span> *) ((<span class="keyword">char</span> *) c + <span class="number">1</span>);</div></pre></td></tr></table></figure>
+<p>这样我们知道c的转变，我的电脑是小端序，所以在数组a中数字实际上是这样排列的：</p>
+<p><img src="/upload_image/7.png" alt=""></p>
+<p>所以c转换完之后实际上值得区域是[b4,b8]这样一个4字节大小的地方，此时c被赋值，实际上会改变a[1],a[2]两个数值，根据小端排序之后的值便是程序的输出。</p>
 
       
     </div>
@@ -511,10 +529,10 @@
       
         <ul class="sidebar-nav motion-element">
           <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
-            Table of Contents
+            Inhaltsverzeichnis
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview-wrap">
-            Overview
+            Übersicht
           </li>
         </ul>
       
@@ -535,7 +553,7 @@
                 <a href="/archives/">
               
                   <span class="site-state-item-count">3</span>
-                  <span class="site-state-item-name">posts</span>
+                  <span class="site-state-item-name">Artikel</span>
                 </a>
               </div>
             
@@ -546,7 +564,7 @@
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
                   <span class="site-state-item-count">1</span>
-                  <span class="site-state-item-name">categories</span>
+                  <span class="site-state-item-name">Kategorien</span>
                 </a>
               </div>
             
@@ -557,7 +575,7 @@
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
                   <span class="site-state-item-count">1</span>
-                  <span class="site-state-item-name">tags</span>
+                  <span class="site-state-item-name">Tags</span>
                 </a>
               </div>
             
@@ -591,7 +609,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-1-PC-Bootstrap"><span class="nav-number">1.</span> <span class="nav-text">Part 1: PC Bootstrap</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-PC’s-Physical-Address-Space"><span class="nav-number">1.1.</span> <span class="nav-text">The PC’s Physical Address Space</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-ROM-BIOS"><span class="nav-number">1.2.</span> <span class="nav-text">The ROM BIOS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-2-The-Boot-Loader"><span class="nav-number">2.</span> <span class="nav-text">Part 2: The Boot Loader</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LOADING-the-Kernel"><span class="nav-number">2.1.</span> <span class="nav-text">LOADING the Kernel</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-1-PC-Bootstrap"><span class="nav-number">1.</span> <span class="nav-text">Part 1: PC Bootstrap</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-PC’s-Physical-Address-Space"><span class="nav-number">1.1.</span> <span class="nav-text">The PC’s Physical Address Space</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-ROM-BIOS"><span class="nav-number">1.2.</span> <span class="nav-text">The ROM BIOS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-2-The-Boot-Loader"><span class="nav-number">2.</span> <span class="nav-text">Part 2: The Boot Loader</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Loading-the-kernel"><span class="nav-number">2.1.</span> <span class="nav-text">Loading the kernel</span></a></li></ol></li></ol></div>
             
 
           </div>
@@ -621,7 +639,7 @@
 </div>
 
 
-  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+  <div class="powered-by">Erstellt mit  <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
 
 
 
