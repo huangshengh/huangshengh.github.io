@@ -92,7 +92,7 @@
 <meta property="og:image" content="http://yoursite.com/upload_image/3.jpg">
 <meta property="og:image" content="http://yoursite.com/upload_image/4.png">
 <meta property="og:image" content="http://yoursite.com/upload_image/5.png">
-<meta property="og:updated_time" content="2017-11-19T07:44:11.051Z">
+<meta property="og:updated_time" content="2017-11-19T07:44:40.918Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="MIT-6.828-Lab1">
 <meta name="twitter:description" content="这个lab就像看书一样。   首先clone lab的代码到本地： 1git clone https://pdos.csail.mit.edu/6.828/2017/jos.git lab   然后cd 进入lab下，输入make接着输入 make qemu。 Part 1: PC BootstrapThe PC’s Physical Address Space  32位下物理内存的分布：低端">
@@ -403,7 +403,6 @@
 <p><img src="/upload_image/5.png" alt=""></p>
 <p>我们可以看书这个代码就是读取elf文件的入口处，那么kernel 被加载的第一句指令肯定是代码段开始的第一句，在obj/kern/下面也有kernel.asm文件，这是反汇编好的也可以直接拿来看。我们也可以通过nm或者objdump来看，方法很多。</p>
 <p>最后我们之后e_entry 是0x0010000c，这个地址处的指令是： movw $0x1234, 0x472</p>
-<p>​</p>
 </li>
 <li><p>Where is the first instruction of the kernel?</p>
 <p>​    movw $0x1234, 0x472</p>
