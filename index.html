@@ -452,10 +452,12 @@
 <p>除了节信息之外，还有一个e_entry很重要，这个信息告诉我们在代码中程序从那里开始执行。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">objdump -f obj/kern/kernel</div></pre></td></tr></table></figure>
 <p>然后我们就看见start address 是0x0010000c。</p>
-<p>其实到这里我觉得是有点复杂的：</p>
 <p><img src="/upload_image/11.png" alt=""></p>
-<p>我们可以见得是，程序的起始地址是0x001000c，我们的内核是被加载到0x00100000， 内核的VMD（虚拟内存地址，也就是运行时候的地址，这个时候是开启了分页模式，实际上对应的物理地址可能就是LMA）是0xf0100000.首先，在运行时我们要把代码从0x00100000的地方复制到0xf0100000.其次程序的起始地址是0x0010000c也很好理解，不是从第一句代码开始执行的。但是既然程序运行的时候要复制到0xf0100000这里那么为什么<strong>起始地址不是0xf010000c呢</strong>？</p>
-
+<p>main.c就是把kernel的每个节从磁盘复制到每个节在内存中的加载地址，然后调到kernel的entry开始执行kernel。</p>
+<p>Exercise6 ： x/Nx addr 打印从addr开始的N 个字的内存。在GNU中字是2B。重启设备，在0x7c00 和0x0010000c处都执行： x/8x 0x00100000  看看有什么不同：</p>
+<p><img src="/upload_image/12.png" alt=""></p>
+<p>我们知道0x00100000是代码段被加载的地址，那么为什么我们在0x7c00和0x0010000c处看到的0x00100000的内存内容不一样呢。嘻嘻很好理解嘛，因为你程序运行到0x7c00的时候loader才开刚刚开始运行，内核还没被加载到内存，那么此处当然是空的什么都没有啊。所以，当你运行到0x0010000c的时候在0x00100000的时候你当然能看见.text的内容了。</p>
+<h2 id="Part-3-The-Kernel"><a href="#Part-3-The-Kernel" class="headerlink" title="Part 3: The Kernel"></a>Part 3: The Kernel</h2>
           
         
       
