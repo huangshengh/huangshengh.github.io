@@ -99,7 +99,7 @@
 <meta property="og:image" content="http://yoursite.com/upload_image/10.png">
 <meta property="og:image" content="http://yoursite.com/upload_image/11.png">
 <meta property="og:image" content="http://yoursite.com/upload_image/12.png">
-<meta property="og:updated_time" content="2017-11-20T02:51:27.344Z">
+<meta property="og:updated_time" content="2017-11-20T05:57:59.765Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="MIT-6.828-Lab1">
 <meta name="twitter:description" content="这个lab就像看书一样。   首先clone lab的代码到本地： 1git clone https://pdos.csail.mit.edu/6.828/2017/jos.git lab   然后cd 进入lab下，输入make接着输入 make qemu。 Part 1: PC BootstrapThe PC’s Physical Address Space  32位下物理内存的分布：低端">
@@ -347,6 +347,11 @@
           
 
           
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i> 浏览
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+            </span>
+          
 
           
 
@@ -422,7 +427,7 @@
 <p>​</p>
 </li>
 </ol>
-<h3 id="Loading-the-kernel"><a href="#Loading-the-kernel" class="headerlink" title="Loading the kernel"></a>Loading the kernel</h3><p>这个exercise推荐读<a href="http://www.amazon.com/C-Programming-Language-2nd/dp/0131103628/sr=8-1/qid=1157812738/ref=pd_bbs_1/104-1502762-1803102?ie=UTF8&amp;s=books" target="_blank" rel="external">K&amp;R</a>的<em>The C Programming Language</em>，然后理解<a href="https://pdos.csail.mit.edu/6.828/2017/labs/lab1/pointers.c" target="_blank" rel="external">pointers.c</a>代码。主要是c里面指着和地址这一部分。这个代码输出6行，我就捡着我觉得有意思的一行结果来说说。</p>
+<h3 id="Loading-the-kernel"><a href="#Loading-the-kernel" class="headerlink" title="Loading the kernel"></a>Loading the kernel</h3><h4 id="Exercise5"><a href="#Exercise5" class="headerlink" title="Exercise5"></a>Exercise5</h4><p>推荐读<a href="http://www.amazon.com/C-Programming-Language-2nd/dp/0131103628/sr=8-1/qid=1157812738/ref=pd_bbs_1/104-1502762-1803102?ie=UTF8&amp;s=books" target="_blank" rel="external">K&amp;R</a>的<em>The C Programming Language</em>，然后理解<a href="https://pdos.csail.mit.edu/6.828/2017/labs/lab1/pointers.c" target="_blank" rel="external">pointers.c</a>代码。主要是c里面指着和地址这一部分。这个代码输出6行，我就捡着我觉得有意思的一行结果来说说。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span></div><div class="line">f(<span class="keyword">void</span>)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">int</span> a[<span class="number">4</span>];</div><div class="line">    <span class="keyword">int</span> *b = <span class="built_in">malloc</span>(<span class="number">16</span>);</div><div class="line">    <span class="keyword">int</span> *c;</div><div class="line">    <span class="keyword">int</span> i;</div><div class="line"></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"1: a = %p, b = %p, c = %p\n"</span>, a, b, c);</div><div class="line"></div><div class="line">    c = a;</div><div class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; <span class="number">4</span>; i++)</div><div class="line">	a[i] = <span class="number">100</span> + i;</div><div class="line">    c[<span class="number">0</span>] = <span class="number">200</span>;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"2: a[0] = %d, a[1] = %d, a[2] = %d, a[3] = %d\n"</span>,</div><div class="line">	   a[<span class="number">0</span>], a[<span class="number">1</span>], a[<span class="number">2</span>], a[<span class="number">3</span>]);</div><div class="line"></div><div class="line">    c[<span class="number">1</span>] = <span class="number">300</span>;</div><div class="line">    *(c + <span class="number">2</span>) = <span class="number">301</span>;</div><div class="line">    <span class="number">3</span>[c] = <span class="number">302</span>;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"3: a[0] = %d, a[1] = %d, a[2] = %d, a[3] = %d\n"</span>,</div><div class="line">	   a[<span class="number">0</span>], a[<span class="number">1</span>], a[<span class="number">2</span>], a[<span class="number">3</span>]);</div><div class="line"></div><div class="line">    c = c + <span class="number">1</span>;</div><div class="line">    *c = <span class="number">400</span>;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"4: a[0] = %d, a[1] = %d, a[2] = %d, a[3] = %d\n"</span>,</div><div class="line">	   a[<span class="number">0</span>], a[<span class="number">1</span>], a[<span class="number">2</span>], a[<span class="number">3</span>]);</div><div class="line"></div><div class="line">    c = (<span class="keyword">int</span> *) ((<span class="keyword">char</span> *) c + <span class="number">1</span>);</div><div class="line">    *c = <span class="number">500</span>;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"5: a[0] = %d, a[1] = %d, a[2] = %d, a[3] = %d\n"</span>,</div><div class="line">	   a[<span class="number">0</span>], a[<span class="number">1</span>], a[<span class="number">2</span>], a[<span class="number">3</span>]);</div><div class="line"></div><div class="line">    b = (<span class="keyword">int</span> *) a + <span class="number">1</span>;</div><div class="line">    c = (<span class="keyword">int</span> *) ((<span class="keyword">char</span> *) a + <span class="number">1</span>);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"6: a = %p, b = %p, c = %p\n"</span>, a, b, c);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>我的运行结果是这样的：</p>
 <p><img src="/upload_image/6.png" alt=""></p>
@@ -455,6 +460,9 @@
 <p>得到的信息：</p>
 <p><img src="/upload_image/9.png" alt=""></p>
 <p>你会发现这确实一样，但是为什么上面的kernel的LMA和VMA不一样呢？以下是老夫脸滚键盘，boot.out还是处在实模式下的代码，所以他的加载地址和执行地址是一样的可以理解。但是kernel是内核，原因是此时是保护模式下，所以VMA地址是虚拟地址所以很高，而加载地址并不高，那么VMA为什么要这么高呢，因为kernel是内核，内核是在高地址，所以kernel的VMA较高。</p>
+<p>使用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">objdump -x obj/kern/kernel</div></pre></td></tr></table></figure>
+<p>来查看program header信息。</p>
 <p>我们的boot是被加载到0x7c00这个地方，我们把 <code>-Ttext 0x7C00</code>这个参数放在了，boot/Makefrag这里面。</p>
 <p>Exercise5 要我们修改这个参数看看会出现什么错误情况。那我就把0x7c00改成0x500看看。</p>
 <p><img src="/upload_image/10.png" alt=""></p>
@@ -464,10 +472,15 @@
 <p>然后我们就看见start address 是0x0010000c。</p>
 <p><img src="/upload_image/11.png" alt=""></p>
 <p>main.c就是把kernel的每个节从磁盘复制到每个节在内存中的加载地址，然后调到kernel的entry开始执行kernel。</p>
-<p>Exercise6 ： x/Nx addr 打印从addr开始的N 个字的内存。在GNU中字是2B。重启设备，在0x7c00 和0x0010000c处都执行： x/8x 0x00100000  看看有什么不同：</p>
+<h4 id="Exercise6-："><a href="#Exercise6-：" class="headerlink" title="Exercise6 ："></a>Exercise6 ：</h4><p> x/Nx addr 打印从addr开始的N 个字的内存。在GNU中字是2B。重启设备，在0x7c00 和0x0010000c处都执行： x/8x 0x00100000  看看有什么不同：</p>
 <p><img src="/upload_image/12.png" alt=""></p>
 <p>我们知道0x00100000是代码段被加载的地址，那么为什么我们在0x7c00和0x0010000c处看到的0x00100000的内存内容不一样呢。嘻嘻很好理解嘛，因为你程序运行到0x7c00的时候loader才开刚刚开始运行，内核还没被加载到内存，那么此处当然是空的什么都没有啊。所以，当你运行到0x0010000c的时候在0x00100000的时候你当然能看见.text的内容了。</p>
-<h2 id="Part-3-The-Kernel"><a href="#Part-3-The-Kernel" class="headerlink" title="Part 3: The Kernel"></a>Part 3: The Kernel</h2>
+<h2 id="Part-3-The-Kernel"><a href="#Part-3-The-Kernel" class="headerlink" title="Part 3: The Kernel"></a>Part 3: The Kernel</h2><h3 id="Using-virtual-memory-to-work-around-position-dependence"><a href="#Using-virtual-memory-to-work-around-position-dependence" class="headerlink" title="Using virtual memory to work around position dependence"></a>Using virtual memory to work around position dependence</h3><p>用虚拟内存来解决位置依赖。刚才我们看program header 就能看见内核的segment的VMA（link address）和LMA（load address）是不同的。</p>
+<p>操作系统内核一般是喜欢放在虚拟地址的高部分，留下底下的低部分给用户进程。比如说32位下，操作系统一般占据这虚拟地址空间的高1G部分。</p>
+<p>很多机器的物理地址并没有0xf0100000这么高，所以我们并不是直接把kernel存放在这里。我们依靠cpu的内存管理硬件（页部件之类的）把物理地址的0x00100000（loader加载kernel到的物理地址）映射到0xf0100000（kernel code 期待运行的link address）【这个就是开始分页模式】。这样一来尽管kernel的<strong>虚拟地址</strong>很高，留下了大量的空间给用户进程。但是它被加载的<strong>物理地址</strong>就在我们的BIOS上面，已经<strong>不在低1MB里面</strong>了，因为0x00100000就是1MB，而内核要往上增长，所以我们的PC机要有几兆的内存。</p>
+<p>我们后面会从地往上映射256MB的内存，也就是从0x00000000-0x0fffffff 映射到0xf0000000-0xffffffff。我们现在只映射低端的4MB内存。我们用手写静态初始化的页目录表和页表来完成映射，他们被放在kern/entrypgdir.c。在cr0寄存器的pg位被打开之前，内存引用被视为物理地址（严格来讲是线性地址）。在pg位被打开之后，内存引用就被虚拟内存管理硬件映射为虚拟内存。 <code>entry_pgdir</code>把0xf0000000-0xf0400000 和0x00000000-0x00400000都映射为物理地址0x00000000-0x00400000。任何不再这两个范围内的地址都会造成硬件异常，而异常处理现在还没有。</p>
+<h4 id="Exercise7："><a href="#Exercise7：" class="headerlink" title="Exercise7："></a>Exercise7：</h4><p>追踪jos内核并停在movl %eax, %cr0（就是开启分页的地方），然后在 0x00100000 and at 0xf0100000这两个内存地方开始，stepi 的看指令。</p>
+
       
     </div>
     
@@ -646,7 +659,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-1-PC-Bootstrap"><span class="nav-number">1.</span> <span class="nav-text">Part 1: PC Bootstrap</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-PC’s-Physical-Address-Space"><span class="nav-number">1.1.</span> <span class="nav-text">The PC’s Physical Address Space</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-ROM-BIOS"><span class="nav-number">1.2.</span> <span class="nav-text">The ROM BIOS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-2-The-Boot-Loader"><span class="nav-number">2.</span> <span class="nav-text">Part 2: The Boot Loader</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Loading-the-kernel"><span class="nav-number">2.1.</span> <span class="nav-text">Loading the kernel</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-3-The-Kernel"><span class="nav-number">3.</span> <span class="nav-text">Part 3: The Kernel</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-1-PC-Bootstrap"><span class="nav-number">1.</span> <span class="nav-text">Part 1: PC Bootstrap</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-PC’s-Physical-Address-Space"><span class="nav-number">1.1.</span> <span class="nav-text">The PC’s Physical Address Space</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-ROM-BIOS"><span class="nav-number">1.2.</span> <span class="nav-text">The ROM BIOS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-2-The-Boot-Loader"><span class="nav-number">2.</span> <span class="nav-text">Part 2: The Boot Loader</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Loading-the-kernel"><span class="nav-number">2.1.</span> <span class="nav-text">Loading the kernel</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Exercise5"><span class="nav-number">2.1.1.</span> <span class="nav-text">Exercise5</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Exercise6-："><span class="nav-number">2.1.2.</span> <span class="nav-text">Exercise6 ：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-3-The-Kernel"><span class="nav-number">3.</span> <span class="nav-text">Part 3: The Kernel</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Using-virtual-memory-to-work-around-position-dependence"><span class="nav-number">3.1.</span> <span class="nav-text">Using virtual memory to work around position dependence</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Exercise7："><span class="nav-number">3.1.1.</span> <span class="nav-text">Exercise7：</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
@@ -690,6 +703,26 @@
 
 
         
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i> 访问人数
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i> 总访问量
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      次
+    </span>
+  
+</div>
+
 
 
 
