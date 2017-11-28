@@ -185,7 +185,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
             
-            Startseite
+            Home
           </a>
         </li>
       
@@ -205,7 +205,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
             
-            Kategorien
+            Categories
           </a>
         </li>
       
@@ -215,7 +215,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
             
-            Archiv
+            Archives
           </a>
         </li>
       
@@ -281,7 +281,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Veröffentlicht am</span>
+                <span class="post-meta-item-text">Posted on</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-11-13T16:18:45+08:00">
                 2017-11-13
@@ -302,7 +302,7 @@
                 <i class="fa fa-folder-o"></i>
               </span>
               
-                <span class="post-meta-item-text">in</span>
+                <span class="post-meta-item-text">In</span>
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
@@ -464,7 +464,100 @@
 <p>操作系统内核一般是喜欢放在虚拟地址的高部分，留下底下的低部分给用户进程。比如说32位下，操作系统一般占据这虚拟地址空间的高1G部分。</p>
 <p>很多机器的物理地址并没有0xf0100000这么高，所以我们并不是直接把kernel存放在这里。我们依靠cpu的内存管理硬件（页部件之类的）把物理地址的0x00100000（loader加载kernel到的物理地址）映射到0xf0100000（kernel code 期待运行的link address）【这个就是开始分页模式】。这样一来尽管kernel的<strong>虚拟地址</strong>很高，留下了大量的空间给用户进程。但是它被加载的<strong>物理地址</strong>就在我们的BIOS上面，已经<strong>不在低1MB里面</strong>了，因为0x00100000就是1MB，而内核要往上增长，所以我们的PC机要有几兆的内存。</p>
 <p>我们后面会从地往上映射256MB的内存，也就是从0x00000000-0x0fffffff 映射到0xf0000000-0xffffffff。我们现在只映射低端的4MB内存。我们用手写静态初始化的页目录表和页表来完成映射，他们被放在kern/entrypgdir.c。在cr0寄存器的pg位被打开之前，内存引用被视为物理地址（严格来讲是线性地址）。在pg位被打开之后，内存引用就被虚拟内存管理硬件映射为虚拟内存。 <code>entry_pgdir</code>把0xf0000000-0xf0400000 和0x00000000-0x00400000都映射为物理地址0x00000000-0x00400000。任何不再这两个范围内的地址都会造成硬件异常，而异常处理现在还没有。</p>
-<h4 id="Exercise7："><a href="#Exercise7：" class="headerlink" title="Exercise7："></a>Exercise7：</h4><p>追踪jos内核并停在movl %eax, %cr0（就是开启分页的地方），然后在 0x00100000 and at 0xf0100000这两个内存地方开始，stepi 的看指令。</p>
+<h4 id="Exercise7："><a href="#Exercise7：" class="headerlink" title="Exercise7："></a>Exercise7：</h4><p>追踪jos内核并停在 movl %eax, %cr0（就是开启分页或者是进入保护模式的指令），然后在 0x00100000 and at 0xf0100000这两个内存地方开始，stepi 的看指令。</p>
+<p>按照之前讲的估计movl %eax, %cr0就是打开分页的指令，这个指令在entry.S的地方，我们不知道这个指令具体的地址，但是我们知道entry的地址是0x0010000c。所以我们先停在这里，然后一步一步的找到movl 这个指令。</p>
+<p>首先： b *0x0010000c</p>
+<p>然后： si</p>
+<p>如下图：</p>
+<p><img src="/upload_image/13.png" alt=""></p>
+<p>接着我们来看0x00100000和0xf0100000处的指令。</p>
+<p>我上面的步骤少了一个si，应该等movl %eax, %cr0指令完成。所以我们来看这两个地址处的指令，很明显：</p>
+<p><img src="/upload_image/14.png" alt=""></p>
+<p>这两个地方的指令是相等的，这是因为开启了分页，两个不同的虚拟地址可以映射到相同的物理地址。如果没有这个指令，那么估计会说0xf0100000太高超出了内存。</p>
+<h3 id="Formatted-Printing-to-the-Console"><a href="#Formatted-Printing-to-the-Console" class="headerlink" title="Formatted Printing to the Console"></a>Formatted Printing to the Console</h3><p>Read through <code>kern/printf.c</code>, <code>lib/printfmt.c</code>, and <code>kern/console.c</code>，这是实现格式化输出的函数。</p>
+<h4 id="Exercise8："><a href="#Exercise8：" class="headerlink" title="Exercise8："></a>Exercise8：</h4><p>补上输出八进制“%o”的代码。</p>
+<p>我们先来看看这三个文件之间的关系。这三个文件printf.c 调用了printfmt.c中的vprintfmt这个函数。但是这个vprintfmt这个函数又调用了consle.c中的cputchar函数。所以consle.c是最底层的，printf.c和printfmt.c都是调用和封装。</p>
+<p>先来看看consle.c 中的cputchar。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">cputchar</span><span class="params">(<span class="keyword">int</span> c)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">	cons_putc(c);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="number">432</span> <span class="keyword">static</span> <span class="keyword">void</span></div><div class="line"><span class="number">433</span> cons_putc(<span class="keyword">int</span> c)</div><div class="line"><span class="number">434</span> &#123;</div><div class="line"><span class="number">435</span>         serial_putc(c);</div><div class="line"><span class="number">436</span>         lpt_putc(c);</div><div class="line"><span class="number">437</span>         cga_putc(c);</div><div class="line"><span class="number">438</span> &#125;</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">65 static void</div><div class="line"> 66 serial_putc(int c)</div><div class="line"> 67 &#123;</div><div class="line"> 68         int i;</div><div class="line"> 69 </div><div class="line"> 70         for (i = 0;</div><div class="line"> 71              !(inb(COM1 + COM_LSR) &amp; COM_LSR_TXRDY) &amp;&amp; i &lt; 12800;</div><div class="line"> 72              i++)</div><div class="line"> 73                 delay();</div><div class="line"> 74 </div><div class="line"> 75         outb(COM1 + COM_TX, c);</div><div class="line"> 76 &#125;</div></pre></td></tr></table></figure>
+<p>先看serial_putc函数。这个函数的逻辑显然是判断状态然后delay，最后输出。你看函数名的重要性体现在这里。我们不看delay（）的指令，也知道它的作用。</p>
+<p>把for循环翻译一遍：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;!(inb(<span class="number">0x3fd</span>)&amp;<span class="number">0x20</span>)&amp;&amp;i&lt;<span class="number">12800</span>;i++)</div></pre></td></tr></table></figure>
+<p>首先0x3fd是line status register，inb(0x3fd)&amp;0x20就是看他的第6位（一共八位）<em>bit 6 = 1  transmitter shift and holding registers empty</em>,这个位是判断数据缓冲寄存器是否为空。如果为1，那么for循环结束。执行输出，</p>
+<p>outb 0x3f8,这个0x3f8端口对应的寄存器是<strong>transmitter holding register, which contains the character to be sent. Bit 0 is sent first.</strong></p>
+<p>讲道理这是把c输入进0x3f8对应的寄存器里面。好了我们接着来看看lgt_putc(c);</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">111 static void</div><div class="line">112 lpt_putc(int c)</div><div class="line">113 &#123;</div><div class="line">114         int i;</div><div class="line">115 </div><div class="line">116         for (i = 0; !(inb(0x378+1) &amp; 0x80) &amp;&amp; i &lt; 12800; i++)</div><div class="line">117                 delay();</div><div class="line">118         outb(0x378+0, c);</div><div class="line">119         outb(0x378+2, 0x08|0x04|0x01);</div><div class="line">120         outb(0x378+2, 0x08);</div><div class="line">121 &#125;</div></pre></td></tr></table></figure>
+<p>0x378-0x37a,是并口打印端口。就是将c放到0x378 的data port ，然后是操作 0x37a的control port。</p>
+<p>最后来看看cga_put(c)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line">162 static void</div><div class="line">163 cga_putc(int c)</div><div class="line">164 &#123;</div><div class="line">165         // if no attribute given, then use black on white</div><div class="line">166         if (!(c &amp; ~0xFF))</div><div class="line">167                 c |= 0x0700;</div><div class="line">168 </div><div class="line">169         switch (c &amp; 0xff) &#123;</div><div class="line">170         case &apos;\b&apos;:</div><div class="line">171                 if (crt_pos &gt; 0) &#123;</div><div class="line">172                         crt_pos--;</div><div class="line">173                         crt_buf[crt_pos] = (c &amp; ~0xff) | &apos; &apos;;</div><div class="line">174                 &#125;</div><div class="line">175                 break;</div><div class="line">176         case &apos;\n&apos;:</div><div class="line">177                 crt_pos += CRT_COLS;</div><div class="line">178                 /* fallthru */</div><div class="line">179         case &apos;\r&apos;:</div><div class="line">180                 crt_pos -= (crt_pos % CRT_COLS);</div><div class="line">181                 break;</div><div class="line">182         case &apos;\t&apos;:</div><div class="line">183                 cons_putc(&apos; &apos;);</div><div class="line">184                 cons_putc(&apos; &apos;);</div><div class="line">185                 cons_putc(&apos; &apos;);</div><div class="line">186                 cons_putc(&apos; &apos;);</div><div class="line">187                 cons_putc(&apos; &apos;);</div><div class="line">188                 break;</div><div class="line">189         default:</div><div class="line">190                 crt_buf[crt_pos++] = c;         /* write the characte    r */</div><div class="line">191                 break;</div><div class="line">192         &#125;</div><div class="line">193 </div><div class="line">194         // What is the purpose of this?</div><div class="line">195         if (crt_pos &gt;= CRT_SIZE) &#123;</div><div class="line">196                 int i;</div><div class="line">197 </div><div class="line">198                 memmove(crt_buf, crt_buf + CRT_COLS, (CRT_SIZE - CRT_    COLS) * sizeof(uint16_t));</div><div class="line">199                 for (i = CRT_SIZE - CRT_COLS; i &lt; CRT_SIZE; i++)</div><div class="line">200                         crt_buf[i] = 0x0700 | &apos; &apos;;</div><div class="line">201                 crt_pos -= CRT_COLS;</div><div class="line">202         &#125;</div><div class="line">203 </div><div class="line">204         /* move that little blinky thing */</div><div class="line">205         outb(addr_6845, 14);</div><div class="line">206         outb(addr_6845 + 1, crt_pos &gt;&gt; 8);</div><div class="line">207         outb(addr_6845, 15);</div><div class="line">208         outb(addr_6845 + 1, crt_pos);</div><div class="line">209 &#125;</div><div class="line">210</div></pre></td></tr></table></figure>
+<p>这个cga_putc函数就是用来判断c具体的值，是控制字符还是一般字符。具体来讲，c里面是有一字节的属性和一字节的字符。所以先判断是否有特殊属性，没有的话就黑底白字。后面那个what purpose 那段代码是，字符的数目超过了缓冲区大小，就让缓冲区往后移。复制缓冲区的内容。</p>
+<p>最后的out，应该就是将字符输出到屏幕上。addr_6845是光标的位置。</p>
+<p>那我们现在来看看exercise8的题目，让我们补充8进制的写法。在lib/printfmt.c 文件里面找到case ‘o’，对着上面的写case ‘u’写就好了。写完之后make clean ，重启qemu看一下。</p>
+<p><img src="/upload_image/15.png" alt=""></p>
+<p>看见第一行会有改变。</p>
+<p>回答👇的问题：</p>
+<ol>
+<li><p>Explain the interface between <code>printf.c</code> and <code>console.c</code>. Specifically, what function does <code>console.c</code> export? How is this function used by <code>printf.c</code>?</p>
+</li>
+<li><p>Explain the following from <code>console.c</code>:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="number">1</span>      <span class="keyword">if</span> (crt_pos &gt;= CRT_SIZE) &#123;</div><div class="line"><span class="number">2</span>              <span class="keyword">int</span> i;</div><div class="line"><span class="number">3</span>              memmove(crt_buf, crt_buf + CRT_COLS, (CRT_SIZE - CRT_COLS) * <span class="keyword">sizeof</span>(<span class="keyword">uint16_t</span>));</div><div class="line"><span class="number">4</span>              <span class="keyword">for</span> (i = CRT_SIZE - CRT_COLS; i &lt; CRT_SIZE; i++)</div><div class="line"><span class="number">5</span>                      crt_buf[i] = <span class="number">0x0700</span> | <span class="string">' '</span>;</div><div class="line"><span class="number">6</span>              crt_pos -= CRT_COLS;</div><div class="line"><span class="number">7</span>      &#125;</div></pre></td></tr></table></figure>
+<p>这个是目前的位置已经写满了，就往下来一行。所以要将后面的往前复制，留出一行的空间。</p>
+</li>
+<li><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> x = <span class="number">1</span>, y = <span class="number">3</span>, z = <span class="number">4</span>;</div><div class="line">cprintf(<span class="string">"x %d, y %x, z %d\n"</span>, x, y, z);</div></pre></td></tr></table></figure>
+<p>In the call to <code>cprintf()</code>, to what does <code>fmt</code> point? To what does <code>ap</code> point?</p>
+<p>显然fmt是格式化字符串，“x %d, y %x, z %d\n”,ap是参数列表 x，y，z</p>
+</li>
+<li><p>Run the following code:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> i = <span class="number">0x00646c72</span>;</div><div class="line">cprintf(<span class="string">"H%x Wo%s"</span>, <span class="number">57616</span>, &amp;i);</div></pre></td></tr></table></figure>
+<p>结果是：</p>
+<p><img src="/upload_image/16.png" alt=""></p>
+<p>因为57616的16进制是e110，&amp;i是对i取地址，而%s是输出内存地址上的字符。我们这个又是小端序，所以是0x72,0x6c,0x64,0x00就是rld\0.</p>
+<p>其实有个问题是怎么执行这个代码，很简单。你看我们每次启动的时候都会有welcome monitor那句话。再看看kern下面有monitor.c文件。我们把代码放进这个文件里就好了。</p>
+</li>
+<li><p>In the following code, what is going to be printed after <code>&#39;y=&#39;</code>? (note: the answer is not a specific value.) Why does this happen?</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cprintf(<span class="string">"x=%d y=%d"</span>, <span class="number">3</span>);</div></pre></td></tr></table></figure>
+<p>y=-267321412.y这个瞎输出了</p>
+</li>
+<li><p>是说压栈的时候是有固定的顺序的。cprint怎么修改能压入数目不定的参数。</p>
+<p>用va_list？</p>
+</li>
+</ol>
+<h3 id="The-Stack"><a href="#The-Stack" class="headerlink" title="The Stack"></a>The Stack</h3><p>最后一部分呢我们就来看一下，c语言上在栈上的具体情况。特别是ip寄存器经过嵌套的call之后的值</p>
+<h4 id="Exercise9"><a href="#Exercise9" class="headerlink" title="Exercise9"></a>Exercise9</h4><p>看一下内核是在哪里初始化了他的栈，并且他的栈具体位于内存的那个地方。内核是如何为栈保存空间。初始化的时候栈指针是这个保留区域的哪个end。</p>
+<p>在entry.S文件中我们看见了关于堆栈的设置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">74         movl    $0x0,%ebp                       # nuke frame pointer</div><div class="line">75 </div><div class="line">76         # Set the stack pointer</div><div class="line">77         movl    $(bootstacktop),%esp</div><div class="line">78</div></pre></td></tr></table></figure>
+<p>来看看esp的具体值，通过gdb打断点0x10000c，进入entry，然后si到这一条指令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mov    $0xf0110000,%esp</div></pre></td></tr></table></figure>
+<p>所以可以知道堆栈的起始的物理地址是0x110000.这是低端的1M上面高64k。栈向低地址扩展，接下来esp会不断地减。那么大小是多少呢，在entry.S的后面我们可以看见他用了一个KSTKSIZE，那么这个数据应该是在我们include的文件里面。查一下上面两个文件。可以知道KSTKSIZE 8*PGSIZE，PGSIZE又是4096.所以一共是32K。</p>
+<p>在x86中esp指的的栈顶，就是目前使用到的地方。esp下面的都是可以用的。然后是push和pop，call指令。汇编的内容。</p>
+<p>ebp呢就是遵守公约。在c语言中，ebp都是指向前一个函数的基指针。就是靠ebp来寻址。、</p>
+<h4 id="Exercise-10"><a href="#Exercise-10" class="headerlink" title="Exercise 10"></a>Exercise 10</h4><p>寻找 <code>test_backtrace</code> 函数的地址在 <code>obj/kern/kernel.asm</code>, 在那里打个断点, 检查在kernel启动后每次调用后会发生什么. 检查函数递归的push多少参数进去。</p>
+<p>在kernel.asm中我们可以看见test_backtrace函数的地址是0xf0100040。我们在这里打断先。</p>
+<p>然后我们用info register看看指令之后寄存器的值。这里没什么好说的，看就好了。</p>
+<p>接下来我们要实现一个mon_backtrace的回溯函数。这个函数要输出的是自己ebp，eip和调用他的函数的ebp，eip，一直到头。刚开始我不知到怎么去获取调用他的函数的ebp和eip。我找一下刚才test_backtrace函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="number">11</span> <span class="keyword">void</span></div><div class="line"><span class="number">12</span> test_backtrace(<span class="keyword">int</span> x)</div><div class="line"><span class="number">13</span> &#123;</div><div class="line"><span class="number">14</span>         cprintf(<span class="string">"entering test_backtrace %d\n"</span>, x);</div><div class="line"><span class="number">15</span>         <span class="keyword">if</span> (x &gt; <span class="number">0</span>)</div><div class="line"><span class="number">16</span>                 test_backtrace(x<span class="number">-1</span>);</div><div class="line"><span class="number">17</span>         <span class="keyword">else</span></div><div class="line"><span class="number">18</span>                 mon_backtrace(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);</div><div class="line"><span class="number">19</span>         cprintf(<span class="string">"leaving test_backtrace %d\n"</span>, x);</div><div class="line"><span class="number">20</span> &#125;</div></pre></td></tr></table></figure>
+<p>现在明白了上面的exercise 为什么要观察ebp和eip了。重新观察test函数的调用情况:</p>
+<p><img src="/upload_image/17.png" alt=""></p>
+<p>我们可以看见这是在init.c中首次调用test_backtrace，且x=5.那么现在的ebp和eip是我们第一次的ebp和eip。也就是我们的结束的条件。先记下来：</p>
+<p><strong>ebp= 0xf010fff8</strong> 那么eip等于什么呢，eip是程序返回的时候的地址，也是call的下一步地址。我们现在看见eip是0xf01000cf。</p>
+<p><img src="/upload_image/18.png" alt=""></p>
+<p>我们可以看见call指令需要5字节，所以当我们第一次调用test_backtrace的时候：</p>
+<p><strong>ebp=0xf010fff8 eip=0xf01000d4</strong></p>
+<p>而当我们在test_backtrace里面调用自己或者mon_backtrace的时候，我们可以看见eip是0xf0100068 和0xf010007b了。</p>
+<p>然后我们再看一下ebp的变化。</p>
+<p>f8-&gt;d8(5)-&gt;b8(4)-&gt;98(3)-&gt;78(2)-&gt;58(1)-&gt;38(0)-&gt;18(mon)</p>
+<p>所以整个过程我们很了解了。但是实际上我们直接调用read_ebp函数就能很好的得到答案。以上只是观察。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span></div><div class="line"> <span class="number">59</span> mon_backtrace(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv, struct Trapframe *tf)</div><div class="line"> <span class="number">60</span> &#123;</div><div class="line"> <span class="number">61</span>         <span class="comment">// Your code here.</span></div><div class="line"> <span class="number">62</span> </div><div class="line"> <span class="number">63</span>         <span class="keyword">uint32_t</span> ebp, eip;</div><div class="line"> <span class="number">64</span>         ebp = read_ebp();<span class="comment">//18</span></div><div class="line"> <span class="number">65</span>         eip = ((<span class="keyword">uint32_t</span>*)ebp)[<span class="number">1</span>];</div><div class="line"> <span class="number">66</span>         cprintf(<span class="string">"Stack backtrace:\n"</span>);</div><div class="line"> <span class="number">67</span>         <span class="keyword">int</span> i;</div><div class="line"> <span class="number">68</span>         <span class="keyword">while</span>(ebp !=<span class="number">0</span>)</div><div class="line"> <span class="number">69</span>         &#123;</div><div class="line"> <span class="number">70</span> <span class="comment">//              eip = ((uint32_t *)ebp)[1];</span></div><div class="line"> <span class="number">71</span>   <span class="comment">//              ebp = ((uint32_t *)ebp)[0];</span></div><div class="line"> <span class="number">72</span> </div><div class="line"> <span class="number">73</span>                 cprintf(<span class="string">"  ebp %08x eip %08x args "</span>,ebp,eip);</div><div class="line"> <span class="number">74</span>                 <span class="comment">//找到ebp上面的5个参数，就是ebp+2，因为+1是eip</span></div><div class="line"> <span class="number">75</span>                 <span class="keyword">uint32_t</span> *argv = (<span class="keyword">uint32_t</span>*)ebp +<span class="number">2</span>;</div><div class="line"> <span class="number">76</span>                 <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">5</span>;i++)</div><div class="line"> <span class="number">77</span>                         cprintf(<span class="string">"%08x "</span>,argv[i]);</div><div class="line"> <span class="number">78</span>                 cprintf(<span class="string">"\n"</span>);</div><div class="line"> <span class="number">79</span>                 <span class="class"><span class="keyword">struct</span> <span class="title">Eipdebuginfo</span> <span class="title">info</span>;</span></div><div class="line"> <span class="number">80</span>                 debuginfo_eip((<span class="keyword">uintptr_t</span>)eip, &amp;info);</div><div class="line"> <span class="number">81</span>                 cprintf(<span class="string">"         %s:%d: %.*s+%d\n"</span>,info.eip_file,inf    o.eip_line,info.eip_fn_namelen,info.eip_fn_name,info.eip_fn_narg);</div><div class="line"> <span class="number">82</span> </div><div class="line"> <span class="number">83</span>                 eip = ((<span class="keyword">uint32_t</span> *)ebp)[<span class="number">1</span>];</div><div class="line"> <span class="number">84</span>                 ebp = ((<span class="keyword">uint32_t</span> *)ebp)[<span class="number">0</span>];</div><div class="line"> <span class="number">85</span>         &#125;</div><div class="line"> <span class="number">86</span> </div><div class="line"> <span class="number">87</span>         <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line"> <span class="number">88</span> &#125;</div></pre></td></tr></table></figure>
+<p>这个是第十和第十二个练习的答案。</p>
+<h4 id="Exercise11"><a href="#Exercise11" class="headerlink" title="Exercise11"></a>Exercise11</h4><p>补充kdebug.c里面的debuginfo_eip函数，根据上下代码，以及到inc的stab.h中寻找类型。我们可以补全。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"> stab_binsearch(stabs, &amp;lline,&amp;rline,N_SLINE, addr);</div><div class="line"><span class="number">183</span>         <span class="keyword">if</span>(lline&lt;=rline)</div><div class="line"><span class="number">184</span>                 info-&gt;eip_line = stabs[rline].n_desc;</div><div class="line"><span class="number">185</span>         <span class="keyword">else</span></div><div class="line"><span class="number">186</span>                 info-&gt;eip_line = <span class="number">-1</span>;</div></pre></td></tr></table></figure>
+<h4 id="Exercise-12"><a href="#Exercise-12" class="headerlink" title="Exercise 12"></a>Exercise 12</h4><p>在mon_backtrace函数中调用debuginfo_eip函数。输出关于eip的信息。见exercise10👆的代码。</p>
+<p>之后的输出就是这样：</p>
+<p><img src="/upload_image/19.png" alt=""></p>
+<p>我们 make grade 评分一下：</p>
+<p><img src="upload_image/20.png" alt=""></p>
+<p>不知道为什么多输出一个也不想改了。这个lab好多啊。不知道接下来还能不能坚持做下去。加油。</p>
 
           
         
@@ -542,7 +635,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Veröffentlicht am</span>
+                <span class="post-meta-item-text">Posted on</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-11-09T15:48:03+08:00">
                 2017-11-09
@@ -563,7 +656,7 @@
                 <i class="fa fa-folder-o"></i>
               </span>
               
-                <span class="post-meta-item-text">in</span>
+                <span class="post-meta-item-text">In</span>
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
@@ -695,7 +788,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Veröffentlicht am</span>
+                <span class="post-meta-item-text">Posted on</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-11-06T17:51:51+08:00">
                 2017-11-06
@@ -830,7 +923,7 @@
                 <a href="/archives/">
               
                   <span class="site-state-item-count">3</span>
-                  <span class="site-state-item-name">Artikel</span>
+                  <span class="site-state-item-name">posts</span>
                 </a>
               </div>
             
@@ -841,7 +934,7 @@
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
                   <span class="site-state-item-count">1</span>
-                  <span class="site-state-item-name">Kategorien</span>
+                  <span class="site-state-item-name">categories</span>
                 </a>
               </div>
             
@@ -852,7 +945,7 @@
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
                   <span class="site-state-item-count">1</span>
-                  <span class="site-state-item-name">Tags</span>
+                  <span class="site-state-item-name">tags</span>
                 </a>
               </div>
             
@@ -900,7 +993,7 @@
 </div>
 
 
-  <div class="powered-by">Erstellt mit  <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
 
 
 
