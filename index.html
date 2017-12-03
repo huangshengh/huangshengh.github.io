@@ -185,7 +185,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
             
-            Startseite
+            Home
           </a>
         </li>
       
@@ -205,7 +205,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
             
-            Kategorien
+            Categories
           </a>
         </li>
       
@@ -215,7 +215,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
             
-            Archiv
+            Archives
           </a>
         </li>
       
@@ -252,7 +252,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/03/hw1/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/03/HW-boot-xv6/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="黄">
@@ -271,7 +271,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2017/12/03/hw1/" itemprop="url">hw1</a></h1>
+                <a class="post-title-link" href="/2017/12/03/HW-boot-xv6/" itemprop="url">HW-boot-xv6</a></h1>
         
 
         <div class="post-meta">
@@ -281,9 +281,9 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Veröffentlicht am</span>
+                <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-12-03T14:47:11+08:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-12-03T14:56:55+08:00">
                 2017-12-03
               </time>
             
@@ -302,7 +302,7 @@
                 <i class="fa fa-folder-o"></i>
               </span>
               
-                <span class="post-meta-item-text">in</span>
+                <span class="post-meta-item-text">In</span>
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
@@ -324,8 +324,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2017/12/03/hw1/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/12/03/hw1/" itemprop="commentCount"></span>
+                <a href="/2017/12/03/HW-boot-xv6/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/12/03/HW-boot-xv6/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -355,7 +355,29 @@
       
         
           
-            
+            <p>这个<a href="https://pdos.csail.mit.edu/6.828/2017/homework/xv6-boot.html" target="_blank" rel="external">作业</a>就比较简单了，前面的不说了。如果你在第二个终端启动gdb失败的话，就要处理一下那个auto-load safe-path。</p>
+<p><strong>Exercise</strong>：</p>
+<p>就是让我们看看栈上面是什么，那我们直接根据他的问题来看。</p>
+<ol>
+<li><p>重启xv6，断点打到0x7c00（boot加载的地方），单步执行，看看在哪里初始了栈指针。</p>
+<p><img src="/upload_image/hw1/1.png" alt=""></p>
+<p>可见在这里把esp初始化为0x7c00。而这个0x7c00是bootasm.S加载的地方，那你把esp放在这里，后面栈上的数据就会把boot前面的数据覆盖掉。当然这是可以的，因为boot只在启动的时候有用。</p>
+</li>
+<li><p>单步执行bootmain，他的栈上是什么。</p>
+<p>我们上面boot 初始化esp之后就调用了bootmain函数，接着执行。在调用bootmain函数之前我们在boot里并没有push bootmain的参数，而在bootmain的栈里面我们push了一些寄存器，然后push了几个参数就调用了另一个函数。</p>
+<p><img src="/upload_image/hw1/2.png" alt=""></p>
+</li>
+<li><p>bootmain在栈上操作的一个指令是什么。</p>
+<p>呃，当然是push ebp啊。</p>
+</li>
+<li><p>在那里把eip初始化为0x1000c。</p>
+<p>我们知道0x1000c是内核开始的地方。所以那就是进入内核的时候把eip设置为0x1000c。那就是在读取elf之间之后了，在bootmain.c中我们可以看见最后调用了entry（），并且不返回那应该就是这里了。根据bootblock.asm把断点打在这里看一下。</p>
+<p><img src="/upload_image/hw1/3.png" alt=""></p>
+<p>可见确实是这里。</p>
+</li>
+</ol>
+<p>基本上就这样吧，0x7c00开始的那个24个地址可以把对应指令拿来看看。</p>
+
           
         
       
@@ -403,7 +425,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/11/13/lab1/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/11/13/MIT-6.828-Lab1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="黄">
@@ -422,7 +444,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2017/11/13/lab1/" itemprop="url">MIT-6.828-Lab1</a></h1>
+                <a class="post-title-link" href="/2017/11/13/MIT-6.828-Lab1/" itemprop="url">MIT-6.828-Lab1</a></h1>
         
 
         <div class="post-meta">
@@ -432,7 +454,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Veröffentlicht am</span>
+                <span class="post-meta-item-text">Posted on</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-11-13T16:18:45+08:00">
                 2017-11-13
@@ -453,7 +475,7 @@
                 <i class="fa fa-folder-o"></i>
               </span>
               
-                <span class="post-meta-item-text">in</span>
+                <span class="post-meta-item-text">In</span>
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
@@ -475,8 +497,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2017/11/13/lab1/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/11/13/lab1/" itemprop="commentCount"></span>
+                <a href="/2017/11/13/MIT-6.828-Lab1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/11/13/MIT-6.828-Lab1/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -786,7 +808,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Veröffentlicht am</span>
+                <span class="post-meta-item-text">Posted on</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-11-09T15:48:03+08:00">
                 2017-11-09
@@ -807,7 +829,7 @@
                 <i class="fa fa-folder-o"></i>
               </span>
               
-                <span class="post-meta-item-text">in</span>
+                <span class="post-meta-item-text">In</span>
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
@@ -939,7 +961,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Veröffentlicht am</span>
+                <span class="post-meta-item-text">Posted on</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-11-06T17:51:51+08:00">
                 2017-11-06
@@ -1074,7 +1096,7 @@
                 <a href="/archives/">
               
                   <span class="site-state-item-count">4</span>
-                  <span class="site-state-item-name">Artikel</span>
+                  <span class="site-state-item-name">posts</span>
                 </a>
               </div>
             
@@ -1085,7 +1107,7 @@
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
                   <span class="site-state-item-count">1</span>
-                  <span class="site-state-item-name">Kategorien</span>
+                  <span class="site-state-item-name">categories</span>
                 </a>
               </div>
             
@@ -1096,7 +1118,7 @@
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
                   <span class="site-state-item-count">1</span>
-                  <span class="site-state-item-name">Tags</span>
+                  <span class="site-state-item-name">tags</span>
                 </a>
               </div>
             
@@ -1144,7 +1166,7 @@
 </div>
 
 
-  <div class="powered-by">Erstellt mit  <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
 
 
 
