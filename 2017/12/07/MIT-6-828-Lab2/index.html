@@ -88,7 +88,8 @@
 <meta property="og:description" content="这个lab是做内存管理的。说实话最近我也在看内存管理这方面，但是感觉不是很懂。涉及到位图，内核和用户进程。不过最近的学习状态也不好，不多说了，来看实验吧。 内存管理呢需要两个部分，一个是物理内存分配器，我们用他来申请和释放以页为单位的空间并且我们还要维护一个数据结构表示哪个物理页是空闲的哪个是分配的，这个物理结构估计就是位图了。另一个部分是虚拟地址，我们需要建立页表来管理虚拟地址。 在开始之前呢我">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/upload_image/lab2/1.png">
-<meta property="og:updated_time" content="2017-12-12T08:39:33.799Z">
+<meta property="og:image" content="http://yoursite.com/upload_image/2.png">
+<meta property="og:updated_time" content="2017-12-26T08:51:43.950Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="MIT-6.828-Lab2">
 <meta name="twitter:description" content="这个lab是做内存管理的。说实话最近我也在看内存管理这方面，但是感觉不是很懂。涉及到位图，内核和用户进程。不过最近的学习状态也不好，不多说了，来看实验吧。 内存管理呢需要两个部分，一个是物理内存分配器，我们用他来申请和释放以页为单位的空间并且我们还要维护一个数据结构表示哪个物理页是空闲的哪个是分配的，这个物理结构估计就是位图了。另一个部分是虚拟地址，我们需要建立页表来管理虚拟地址。 在开始之前呢我">
@@ -188,7 +189,17 @@
             
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
             
-            Startseite
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
           </a>
         </li>
       
@@ -208,7 +219,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
             
-            Kategorien
+            Categories
           </a>
         </li>
       
@@ -218,7 +229,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
             
-            Archiv
+            Archives
           </a>
         </li>
       
@@ -282,7 +293,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Veröffentlicht am</span>
+                <span class="post-meta-item-text">Posted on</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-12-07T10:28:19+08:00">
                 2017-12-07
@@ -303,7 +314,7 @@
                 <i class="fa fa-folder-o"></i>
               </span>
               
-                <span class="post-meta-item-text">in</span>
+                <span class="post-meta-item-text">In</span>
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
@@ -374,7 +385,8 @@
 <p>Memlayout.h pmap.h 要特别注意</p>
 <p>首先我们来了解一下pc里面的内存情况。我们对于内存的管理是基于页大小来讲的，一个物理页是4K，管理页的结构是页表，每个页表管理1024个物理页，也就是一个页表管理的内存是4M。页表里面的1024个entry和物理页是一一对应的，每个entry是4个字节，其中前20位是物理页的起始地址，后面12位是属性。现在一般都是采用二级页表来管理，也就是有一个页目录表来管理页表，每个页目录项对应一个页表。</p>
 <h1 id="Part-1-Physical-Page-Management"><a href="#Part-1-Physical-Page-Management" class="headerlink" title="Part 1: Physical Page Management"></a>Part 1: Physical Page Management</h1><p>我们需要先写物理页分配器，他用一个链表的PageInfo对象来保存哪个页是free的。</p>
-<h4 id="Exercise-1-In-the-file-kern-pmap-c-you-must-implement-code-for-the-following-functions-probably-in-the-order-given"><a href="#Exercise-1-In-the-file-kern-pmap-c-you-must-implement-code-for-the-following-functions-probably-in-the-order-given" class="headerlink" title="Exercise 1. In the file kern/pmap.c, you must implement code for the following functions (probably in the order given)."></a>Exercise 1. In the file <code>kern/pmap.c</code>, you must implement code for the following functions (probably in the order given).</h4><p><code>boot_alloc()</code><br><code>mem_init()</code> (only up to the call to <code>check_page_free_list(1)</code>)<br><code>page_init()</code><br><code>page_alloc()</code></p>
+<p>####Exercise 1. In the file <code>kern/pmap.c</code>, you must implement code for the following functions (probably in the order given).</p>
+<p><code>boot_alloc()</code><br><code>mem_init()</code> (only up to the call to <code>check_page_free_list(1)</code>)<br><code>page_init()</code><br><code>page_alloc()</code></p>
 <p><code>page_free()</code></p>
 <p>我们要实现这几个函数。先来看看memlayout.h 和 pmap.h。哇，不会写。</p>
 <p>memlayout.h介绍了内存的布局，定义了一些变量和结构。</p>
@@ -409,9 +421,25 @@
 <p>好了接下来我们看到mem_init里面要我们申请npages 个PageInfo结构来管理内存，那么很明显我们还是使用boot_alloc来申请。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="number">157</span>         <span class="comment">//////////////////////////////////////////////////////////////////////</span></div><div class="line"><span class="number">158</span>         <span class="comment">// Allocate an array of npages 'struct PageInfo's and store it in 'pages'.</span></div><div class="line"><span class="number">159</span>         <span class="comment">// The kernel uses this array to keep track of physical pages: for</span></div><div class="line"><span class="number">160</span>         <span class="comment">// each physical page, there is a corresponding struct PageInfo in this</span></div><div class="line"><span class="number">161</span>         <span class="comment">// array.  'npages' is the number of physical pages in memory.  Use memset</span></div><div class="line"><span class="number">162</span>         <span class="comment">// to initialize all fields of each struct PageInfo to 0.</span></div><div class="line"><span class="number">163</span>         <span class="comment">// Your code goes here:</span></div><div class="line"><span class="number">164</span> </div><div class="line"><span class="number">165</span>         <span class="keyword">size_t</span> pageinfo_size = <span class="keyword">sizeof</span>(struct PageInfo);</div><div class="line"><span class="number">166</span>         <span class="class"><span class="keyword">struct</span> <span class="title">PageInfo</span>* <span class="title">pages</span> = (<span class="title">struct</span> <span class="title">PageInfo</span>*)<span class="title">boot_alloc</span>(<span class="title">npages</span>*<span class="title">pageinfo_size</span>);</span></div><div class="line"><span class="number">167</span>         <span class="built_in">memset</span>(pages, <span class="number">0</span>, npages*pageinfo_size);</div></pre></td></tr></table></figure>
 <p>接下来我们要写的就是page_init，当我们申请完npages个pageinfo的结构来对应page。那么我们要初始化pages和page_free_list，只有处在page_free_list里面的page才是空闲的，可用的。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line"><span class="number">250</span> <span class="keyword">void</span></div><div class="line"><span class="number">251</span> page_init(<span class="keyword">void</span>)</div><div class="line"><span class="number">252</span> &#123;</div><div class="line"><span class="number">253</span>         <span class="comment">// The example code here marks all physical pages as free.</span></div><div class="line"><span class="number">254</span>         <span class="comment">// However this is not truly the case.  What memory is free?</span></div><div class="line"><span class="number">255</span>         <span class="comment">//  1) Mark physical page 0 as in use.</span></div><div class="line"><span class="number">256</span>         <span class="comment">//     This way we preserve the real-mode IDT and BIOS structures</span></div><div class="line"><span class="number">257</span>         <span class="comment">//     in case we ever need them.  (Currently we don't, but...)</span></div><div class="line"><span class="number">258</span>         <span class="comment">//  2) The rest of base memory, [PGSIZE, npages_basemem * PGSIZE)</span></div><div class="line"><span class="number">259</span>         <span class="comment">//     is free.</span></div><div class="line"><span class="number">260</span>         <span class="comment">//  3) Then comes the IO hole [IOPHYSMEM, EXTPHYSMEM), which must</span></div><div class="line"><span class="number">261</span>         <span class="comment">//     never be allocated.</span></div><div class="line"><span class="number">262</span>         <span class="comment">//  4) Then extended memory [EXTPHYSMEM, ...).</span></div><div class="line"><span class="number">263</span>         <span class="comment">//     Some of it is in use, some is free. Where is the kernel</span></div><div class="line"><span class="number">264</span>         <span class="comment">//     in physical memory?  Which pages are already in use for</span></div><div class="line"><span class="number">265</span>         <span class="comment">//     page tables and other data structures?</span></div><div class="line"><span class="number">266</span>         <span class="comment">//</span></div><div class="line"><span class="number">267</span>         <span class="comment">// Change the code to reflect this.</span></div><div class="line"><span class="number">268</span>         <span class="comment">// NB: DO NOT actually touch the physical memory corresponding to</span></div><div class="line"><span class="number">269</span>         <span class="comment">// free pages!</span></div><div class="line"><span class="number">270</span>         <span class="keyword">size_t</span> i, top;</div><div class="line"><span class="number">271</span>         <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; npages_basemem; i++) &#123;</div><div class="line"><span class="number">272</span>                 pages[i].pp_ref = <span class="number">0</span>;</div><div class="line"><span class="number">273</span>                 pages[i].pp_link = page_free_list;</div><div class="line"><span class="number">274</span>                 page_free_list = &amp;pages[i];</div><div class="line"><span class="number">275</span>         &#125;</div><div class="line"><span class="number">276</span>         pages[<span class="number">0</span>].pp_ref =<span class="number">1</span>;</div><div class="line"><span class="number">277</span>         pages[<span class="number">0</span>].pp_link = <span class="literal">NULL</span>;</div><div class="line"><span class="number">278</span>         pages[<span class="number">1</span>].pp_link = <span class="literal">NULL</span>;</div><div class="line"><span class="number">279</span> </div><div class="line"><span class="number">280</span>         <span class="keyword">while</span>((i&gt;=IOPHYSMEM/PGSIZE) &amp;&amp; (i&lt;EXTPHYSMEM/PGSIZE))</div><div class="line"><span class="number">281</span>         &#123;</div><div class="line"><span class="number">282</span>                 pages[i].pp_ref =<span class="number">0</span>;</div><div class="line"><span class="number">283</span>                 i++;</div><div class="line"><span class="number">284</span>         &#125;</div><div class="line"><span class="number">285</span> </div><div class="line"><span class="number">286</span>         top = PADDR(boot_alloc(<span class="number">0</span>))/PGSIZE;</div><div class="line"><span class="number">287</span>         <span class="keyword">while</span>((i&gt;=EXTPHYSMEM/PGSIZE)&amp;&amp;i&lt;top)</div><div class="line"><span class="number">288</span>         &#123;</div><div class="line"><span class="number">289</span>                 <span class="keyword">if</span>(pages[i].pp_ref==<span class="number">0</span>)</div><div class="line"><span class="number">290</span>                 &#123;</div><div class="line"><span class="number">291</span>                         pages[i].pp_link = page_free_list;</div><div class="line"><span class="number">292</span>                         page_free_list = &amp;pages[i];</div><div class="line"><span class="number">293</span>                 &#125;</div><div class="line"><span class="number">294</span>                 <span class="keyword">else</span></div><div class="line"><span class="number">295</span>                 &#123;</div><div class="line"><span class="number">296</span>                         pages[i].pp_ref++;</div><div class="line"><span class="number">297</span>                         pages[i].pp_link = <span class="literal">NULL</span>;</div><div class="line"><span class="number">298</span>                 &#125;</div><div class="line"><span class="number">299</span>         &#125;</div></pre></td></tr></table></figure>
-<p>对应着他的提示一个情况一个情况的写，因为我们的pages也是在kernelbase的内存之上的。第一个page呢要保存起来留给IDT和BIOS用，2-pages_basemem之间的pages对应的page都是空闲的，到了[io,ex)之间的pages就从不申请，所以不能放在freelist里面，后面剩下的有的用了有的没用，我也不知道怎么写，就随便写了。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div></pre></td><td class="code"><pre><div class="line"><span class="number">250</span> <span class="keyword">void</span></div><div class="line"><span class="number">251</span> page_init(<span class="keyword">void</span>)</div><div class="line"><span class="number">252</span> &#123;</div><div class="line"><span class="number">253</span>         <span class="comment">// The example code here marks all physical pages as free.</span></div><div class="line"><span class="number">254</span>         <span class="comment">// However this is not truly the case.  What memory is free?</span></div><div class="line"><span class="number">255</span>         <span class="comment">//  1) Mark physical page 0 as in use.</span></div><div class="line"><span class="number">256</span>         <span class="comment">//     This way we preserve the real-mode IDT and BIOS structures</span></div><div class="line"><span class="number">257</span>         <span class="comment">//     in case we ever need them.  (Currently we don't, but...)</span></div><div class="line"><span class="number">258</span>         <span class="comment">//  2) The rest of base memory, [PGSIZE, npages_basemem * PGSIZE)</span></div><div class="line"><span class="number">259</span>         <span class="comment">//     is free.</span></div><div class="line"><span class="number">260</span>         <span class="comment">//  3) Then comes the IO hole [IOPHYSMEM, EXTPHYSMEM), which must</span></div><div class="line"><span class="number">261</span>         <span class="comment">//     never be allocated.</span></div><div class="line"><span class="number">262</span>         <span class="comment">//  4) Then extended memory [EXTPHYSMEM, ...).</span></div><div class="line"><span class="number">263</span>         <span class="comment">//     Some of it is in use, some is free. Where is the kernel</span></div><div class="line"><span class="number">264</span>         <span class="comment">//     in physical memory?  Which pages are already in use for</span></div><div class="line"><span class="number">265</span>         <span class="comment">//     page tables and other data structures?</span></div><div class="line"><span class="number">266</span>         <span class="comment">//</span></div><div class="line"><span class="number">267</span>         <span class="comment">// Change the code to reflect this.</span></div><div class="line"><span class="number">268</span>         <span class="comment">// NB: DO NOT actually touch the physical memory corresponding to</span></div><div class="line"><span class="number">269</span>         <span class="comment">// free pages!</span></div><div class="line"><span class="number">270</span>         <span class="keyword">size_t</span> i, top;</div><div class="line"><span class="number">271</span>         <span class="keyword">for</span> (i = <span class="number">1</span>; i &lt; npages_basemem; i++) &#123;</div><div class="line"><span class="number">272</span>                 pages[i].pp_ref = <span class="number">0</span>;</div><div class="line"><span class="number">273</span>                 pages[i].pp_link = page_free_list;</div><div class="line"><span class="number">274</span>                 page_free_list = &amp;pages[i];</div><div class="line"><span class="number">275</span>         &#125;</div><div class="line"><span class="number">276</span>         pages[<span class="number">0</span>].pp_ref =<span class="number">1</span>;</div><div class="line"><span class="number">277</span>         pages[<span class="number">0</span>].pp_link = <span class="literal">NULL</span>;</div><div class="line"><span class="number">278</span> </div><div class="line"><span class="number">279</span>         assert(i==IOPHYSMEM/PGSIZE);    </div><div class="line"><span class="number">280</span>         <span class="keyword">for</span>(i&gt;=IOPHYSMEM/PGSIZE; i&lt;EXTPHYSMEM/PGSIZE;i++)</div><div class="line"><span class="number">281</span>                 pages[i].pp_ref = <span class="number">1</span>;</div><div class="line"><span class="number">282</span> </div><div class="line"><span class="number">283</span>         assert(i==EXTPHYSMEM/PGSIZE);</div><div class="line"><span class="number">284</span>         top = (PADDR(boot_alloc(<span class="number">0</span>)))/PGSIZE;</div><div class="line"><span class="number">285</span>         <span class="keyword">for</span>(i=EXTPHYSMEM/PGSIZE;i&lt;top;i++)</div><div class="line"><span class="number">286</span>         &#123;</div><div class="line"><span class="number">287</span>                 pages[i].pp_ref = <span class="number">1</span>;</div><div class="line"><span class="number">288</span> <span class="comment">//              pages[i].pp_link = NULL;</span></div><div class="line"><span class="number">289</span>         &#125;</div><div class="line"><span class="number">290</span>         <span class="keyword">for</span>(i=top;i&lt;npages;i++)</div><div class="line"><span class="number">291</span>         &#123;</div><div class="line"><span class="number">292</span>                 pages[i].pp_ref =<span class="number">0</span>;</div><div class="line"><span class="number">293</span>                 pages[i].pp_link = page_free_list;</div><div class="line"><span class="number">294</span>                 page_free_list = &amp;pages[i];</div><div class="line"><span class="number">295</span>         &#125;</div><div class="line"><span class="number">296</span> &#125;</div></pre></td></tr></table></figure>
+<p>对应着他的提示一个情况一个情况的写，因为我们的pages也是在kernelbase的内存之上的。第一个page呢要保存起来留给IDT和BIOS用，2-pages_basemem之间的pages对应的page都是空闲的，到了[io,ex)之间的pages就从不申请，所以不能放在freelist里面。最后一个条件是最难理解的，有的地方是用的，有的没有用，那要怎么判断呢？因为boot_alloc返回的nextfree后面肯定是free的，所以我就把[ex,nextfree)当成是有用的，之后的当成无用的。</p>
 <p>接下来我们就要补充page_alloc了，这个是用来申请物理地址的。我们知道我们所有的物理地址都是映射大kernelbase之上，所以我们的page也是从kernelbase上面开始的。根据page_free_list来把空闲的page申请。其实我在想那我们刚才boot_alloc的kern_pgdir和pages都在哪里，又看了看boot_alloc，说nextfree是由linker来决定的bss段后面，那就是他们被加载到某个地方，但并不是从kernelbase开始的地方。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="number">311</span> <span class="class"><span class="keyword">struct</span> <span class="title">PageInfo</span> *</span></div><div class="line"><span class="class">312 <span class="title">page_alloc</span>(<span class="title">int</span> <span class="title">alloc_flags</span>)</span></div><div class="line"><span class="class">313 &#123;</span></div><div class="line"><span class="number">314</span>         <span class="comment">// Fill this function in</span></div><div class="line"><span class="number">315</span>         <span class="keyword">if</span>(!page_free_list)</div><div class="line"><span class="number">316</span>                 <span class="keyword">return</span> <span class="literal">NULL</span>;</div><div class="line"><span class="number">317</span>         <span class="class"><span class="keyword">struct</span> <span class="title">PageInfo</span>* <span class="title">ans</span> = <span class="title">page_free_list</span>;</span></div><div class="line"><span class="number">318</span>         page_free_list = page_free_list-&gt;pp_link;</div><div class="line"><span class="number">319</span>         ans-&gt;pp_link = <span class="literal">NULL</span>;</div><div class="line"><span class="number">320</span> </div><div class="line"><span class="number">321</span>         <span class="comment">//use page2kva 得到虚拟地址     </span></div><div class="line"><span class="number">322</span>         <span class="keyword">if</span>(alloc_flags &amp; ALLOC_ZERO)</div><div class="line"><span class="number">323</span>                 <span class="built_in">memset</span>(page2kva(ans),<span class="string">'\0'</span>,PGSIZE);</div><div class="line"><span class="number">324</span>         <span class="keyword">return</span> ans;</div><div class="line"><span class="number">325</span> &#125;</div><div class="line"><span class="number">326</span> </div><div class="line"><span class="number">327</span> <span class="comment">//</span></div><div class="line"><span class="number">328</span> <span class="comment">// Return a page to the free list.</span></div><div class="line"><span class="number">329</span> <span class="comment">// (This function should only be called when pp-&gt;pp_ref reaches 0.)</span></div><div class="line"><span class="number">330</span> <span class="comment">//</span></div><div class="line"><span class="number">331</span> <span class="keyword">void</span></div><div class="line"><span class="number">332</span> page_free(struct PageInfo *pp)</div><div class="line"><span class="number">333</span> &#123;</div><div class="line"><span class="number">334</span>         <span class="comment">// Fill this function in</span></div><div class="line"><span class="number">335</span>         <span class="comment">// Hint: You may want to panic if pp-&gt;pp_ref is nonzero or</span></div><div class="line"><span class="number">336</span>         <span class="comment">// pp-&gt;pp_link is not NULL.</span></div><div class="line"><span class="number">337</span>         assert(pp-&gt;pp_ref == <span class="number">0</span>);</div><div class="line"><span class="number">338</span>         assert(pp-&gt;pp_link == <span class="literal">NULL</span>);</div><div class="line"><span class="number">339</span>         pp-&gt;pp_link =page_free_list;</div><div class="line"><span class="number">340</span>         page_free_list = pp;</div><div class="line"><span class="number">341</span> &#125;</div><div class="line"><span class="number">342</span></div></pre></td></tr></table></figure>
+<p>Page_free也很简单，就一块写了。之后再启动os就能看见check success。</p>
+<h1 id="Part-2-Virtual-Memory"><a href="#Part-2-Virtual-Memory" class="headerlink" title="Part 2: Virtual Memory"></a>Part 2: Virtual Memory</h1><p>####Exercise2</p>
+<p>这个练习让我们看看页表转换和保护模式。</p>
+<p>在x86下，虚拟地址是段选择子和段内偏移地址。线性地址是经过段内转换之后的虚拟地址，线性地址再经过页表转换形成物理地址。</p>
+<p><img src="/upload_image/2.png" alt=""></p>
+<p>####Exercise3：</p>
+<p>第三个实验就是让我们用qemu的xp和gdb的x命令来看物理地址和对应虚拟地址上的内容。</p>
+<p>主要是进入qemu的monitor模式。</p>
+<p>在我们的操作系统中，只要我们经过启动之后。在程序里面见到的地址都是虚拟地址。像指针的值啊，这些指的都是虚拟地址，需要经过MMU（硬件）翻译成物理地址。</p>
+<p>我们可以dereference一个虚拟地址，通过把它转换成一个指针。但是我们不能dereference一个物理地址，因为mmu翻译所有的内存引用，如果你强行把物理地址也给转换成指针可能会出错。</p>
+<p>内核有时候需要直接读取和操作只知道物理地址的内存。比如为页表添加一个映射需要我们申请物理内存去存储一个页目录项并且初始化它。然而内核不能绕过虚拟地址翻译这一步所以我们不能直接的申请和加载物理地址。我们jos把从0开始的物理地址重新映射成从0xf0000000开始的虚拟地址就是帮助内核读写物理地址.<strong>KADDR（pa）就是把物理地址加上0xf0000000.PADDR(va)是把虚拟地址转换成物理地址的。</strong></p>
+<h2 id="Reference-counting"><a href="#Reference-counting" class="headerlink" title="Reference counting"></a>Reference counting</h2><p>之后的lab中，我们的每个物理页可能同时的指向多个虚拟地址。PageInfo结构里面的pp_ref就是对于每个物理页的引用计数。只有当这个计数为0的时候这个页才能被释放。通常情况下，计数等于物理页在utop下出现在各个也表中的次数。因为utop是用户可以访问的虚拟地址的顶端。</p>
+<p>##Page Table Management</p>
+<p>那我们在这里要做的是添加或者移除线性地址到虚拟地址的映射，必要时创建页表页。</p>
+<h4 id="Exercise-4-In-the-file-kern-pmap-c-you-must-implement-code-for-the-following-functions"><a href="#Exercise-4-In-the-file-kern-pmap-c-you-must-implement-code-for-the-following-functions" class="headerlink" title="Exercise 4. In the file kern/pmap.c, you must implement code for the following functions."></a>Exercise 4. In the file <code>kern/pmap.c</code>, you must implement code for the following functions.</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">pgdir_walk()</div><div class="line">boot_map_region()</div><div class="line">page_lookup()</div><div class="line">page_remove()</div><div class="line">page_insert()</div></pre></td></tr></table></figure>
 
       
     </div>
@@ -511,10 +539,10 @@
       
         <ul class="sidebar-nav motion-element">
           <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
-            Inhaltsverzeichnis
+            Table of Contents
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview-wrap">
-            Übersicht
+            Overview
           </li>
         </ul>
       
@@ -535,7 +563,7 @@
                 <a href="/archives/">
               
                   <span class="site-state-item-count">5</span>
-                  <span class="site-state-item-name">Artikel</span>
+                  <span class="site-state-item-name">posts</span>
                 </a>
               </div>
             
@@ -546,7 +574,7 @@
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
                   <span class="site-state-item-count">1</span>
-                  <span class="site-state-item-name">Kategorien</span>
+                  <span class="site-state-item-name">categories</span>
                 </a>
               </div>
             
@@ -557,7 +585,7 @@
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
                   <span class="site-state-item-count">1</span>
-                  <span class="site-state-item-name">Tags</span>
+                  <span class="site-state-item-name">tags</span>
                 </a>
               </div>
             
@@ -591,7 +619,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Part-1-Physical-Page-Management"><span class="nav-number">1.</span> <span class="nav-text">Part 1: Physical Page Management</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Exercise-1-In-the-file-kern-pmap-c-you-must-implement-code-for-the-following-functions-probably-in-the-order-given"><span class="nav-number">1.0.0.1.</span> <span class="nav-text">Exercise 1. In the file kern/pmap.c, you must implement code for the following functions (probably in the order given).</span></a></li></ol></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Part-1-Physical-Page-Management"><span class="nav-number">1.</span> <span class="nav-text">Part 1: Physical Page Management</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Part-2-Virtual-Memory"><span class="nav-number">2.</span> <span class="nav-text">Part 2: Virtual Memory</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference-counting"><span class="nav-number">2.1.</span> <span class="nav-text">Reference counting</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Exercise-4-In-the-file-kern-pmap-c-you-must-implement-code-for-the-following-functions"><span class="nav-number">2.1.0.1.</span> <span class="nav-text">Exercise 4. In the file kern/pmap.c, you must implement code for the following functions.</span></a></li></ol></li></ol></li></ol></li></ol></div>
             
 
           </div>
@@ -611,7 +639,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2017</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
@@ -621,7 +649,7 @@
 </div>
 
 
-  <div class="powered-by">Erstellt mit  <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
 
 
 
